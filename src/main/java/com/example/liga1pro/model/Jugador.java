@@ -1,5 +1,6 @@
 package com.example.liga1pro.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +23,8 @@ public class Jugador {
     private String nacionalidad;
     private Integer edad;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "equipo_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Equipo equipo;
 }
