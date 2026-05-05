@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tabla-posiciones")
-@CrossOrigin(origins = "*")
 public class TablaPosicionController {
     
     @Autowired

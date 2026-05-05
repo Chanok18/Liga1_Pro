@@ -17,20 +17,19 @@ function Home() {
       } catch (err) {
         setError('Error al cargar los partidos')
         console.error(err)
-        // Datos de prueba si hay error en la API
         setPartidos([
           {
             id: 1,
             equipoLocal: {
               id: 1,
               nombre: 'Universitario',
-              logoUrl: '⚽',
+              logoUrl: 'L1',
               ciudad: 'Lima'
             },
             equipoVisitante: {
               id: 2,
               nombre: 'Sport Boys',
-              logoUrl: '⚽',
+              logoUrl: 'L1',
               ciudad: 'Lima'
             },
             golesLocal: 1,
@@ -52,13 +51,13 @@ function Home() {
     <div className="home">
       <section className="partidos-en-vivo">
         <h1 className="section-title">Partidos en Vivo</h1>
-        
+
         {loading && <div className="loading">Cargando partidos...</div>}
         {error && <div className="error">{error}</div>}
-        
+
         <div className="partidos-grid">
           {partidos.length > 0 ? (
-            partidos.map(partido => (
+            partidos.map((partido) => (
               <PartidoCard key={partido.id} partido={partido} />
             ))
           ) : !loading ? (

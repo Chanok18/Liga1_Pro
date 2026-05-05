@@ -1,54 +1,63 @@
-import { useState } from 'react'
 import '../styles/Navbar.css'
 
-function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-
+function Navbar({ vistaActiva, onCambiarVista, onCerrarSesion }) {
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-logo">
-          <div className="logo-icon">⚽</div>
+          <div className="logo-icon">L1</div>
           <span>Liga1 Pro</span>
         </div>
 
         <ul className="navbar-menu">
           <li className="nav-item">
-            <a href="#" className="nav-link active">
-              🏠 Inicio
-            </a>
+            <button
+              type="button"
+              className={`nav-link nav-link-btn ${vistaActiva === 'inicio' ? 'active' : ''}`}
+              onClick={() => onCambiarVista('inicio')}
+            >
+              Inicio
+            </button>
           </li>
           <li className="nav-item">
-            <a href="#" className="nav-link">
-              📅 Fixture
-            </a>
+            <button
+              type="button"
+              className={`nav-link nav-link-btn ${vistaActiva === 'perfil' ? 'active' : ''}`}
+              onClick={() => onCambiarVista('perfil')}
+            >
+              Mi Perfil
+            </button>
           </li>
           <li className="nav-item">
-            <a href="#" className="nav-link">
-              📊 Tabla
-            </a>
+            <span className="nav-link nav-link-disabled">
+              Fixture
+            </span>
           </li>
           <li className="nav-item">
-            <a href="#" className="nav-link">
-              👥 Clubes
-            </a>
+            <span className="nav-link nav-link-disabled">
+              Tabla
+            </span>
           </li>
           <li className="nav-item">
-            <a href="#" className="nav-link">
-              📈 Estadísticas
-            </a>
+            <span className="nav-link nav-link-disabled">
+              Clubes
+            </span>
           </li>
           <li className="nav-item">
-            <a href="#" className="nav-link">
-              📰 Noticias
-            </a>
+            <span className="nav-link nav-link-disabled">
+              Estadisticas
+            </span>
+          </li>
+          <li className="nav-item">
+            <span className="nav-link nav-link-disabled">
+              Noticias
+            </span>
           </li>
         </ul>
 
-        <div className="navbar-icons">
-          <button className="icon-btn">💬</button>
-          <button className="icon-btn">👤</button>
-        </div>
+        <button type="button" className="logout-btn" onClick={onCerrarSesion}>
+          Cerrar sesion
+        </button>
       </div>
     </nav>
   )

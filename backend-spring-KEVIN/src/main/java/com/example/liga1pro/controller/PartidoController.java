@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/partidos")
-@CrossOrigin(origins = "*")
 public class PartidoController {
     
     @Autowired
