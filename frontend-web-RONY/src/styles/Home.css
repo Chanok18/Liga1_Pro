@@ -1,0 +1,90 @@
+/* Home Page Styles */
+.home {
+  background-color: #0a0a0a;
+  min-height: calc(100vh - 80px);
+  padding: 2rem;
+}
+
+.partidos-en-vivo {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-title {
+  color: #fff;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  font-weight: bold;
+  text-shadow: 0 2px 8px rgba(204, 0, 0, 0.3);
+  border-left: 5px solid #cc0000;
+  padding-left: 1rem;
+}
+
+.partidos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2rem;
+}
+
+.loading {
+  color: #ccc;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 3rem;
+  background-color: rgba(204, 0, 0, 0.05);
+  border: 2px dashed #cc0000;
+  border-radius: 8px;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: 1rem;
+  text-align: center;
+  padding: 2rem;
+  background-color: rgba(255, 107, 107, 0.1);
+  border: 2px solid #ff6b6b;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.no-partidos {
+  color: #999;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 3rem;
+  background-color: rgba(204, 0, 0, 0.05);
+  border: 2px dashed #cc0000;
+  border-radius: 8px;
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1024px) {
+  .partidos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .home {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .partidos-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .home {
+    padding: 1rem 0.5rem;
+  }
+}

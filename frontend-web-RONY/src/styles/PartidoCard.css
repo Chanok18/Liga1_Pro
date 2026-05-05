@@ -1,0 +1,182 @@
+/* Partido Card Styles */
+.partido-card {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+  border: 2px solid #cc0000;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 8px 24px rgba(204, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.partido-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(204, 0, 0, 0.25);
+}
+
+.partido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.estado-badge {
+  background-color: #cc0000;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 8px rgba(204, 0, 0, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.minuto-badge {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  opacity: 0.8;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.partido-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.equipo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.equipo-logo {
+  width: 60px;
+  height: 60px;
+  background-color: rgba(204, 0, 0, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border: 2px solid #cc0000;
+}
+
+.equipo-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.equipo-nombre {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  word-wrap: break-word;
+  max-width: 120px;
+}
+
+.resultado {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.goles {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #cc0000;
+  min-width: 50px;
+  text-align: center;
+}
+
+.vs {
+  color: #999;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.partido-footer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(204, 0, 0, 0.2);
+}
+
+.goleador {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.goleador-label {
+  color: #999;
+}
+
+.goleador-nombre {
+  color: #fff;
+  font-weight: 600;
+}
+
+.partido-stadium {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #999;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.stadium-name {
+  color: #ccc;
+}
+
+@media (max-width: 768px) {
+  .partido-card {
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+
+  .minuto-badge {
+    font-size: 1.5rem;
+  }
+
+  .resultado {
+    gap: 1rem;
+  }
+
+  .goles {
+    font-size: 2.5rem;
+  }
+
+  .equipo-nombre {
+    font-size: 0.9rem;
+    max-width: 100px;
+  }
+}
