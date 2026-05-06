@@ -27,6 +27,14 @@
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
 }
 
+.perfil-card {
+  background: linear-gradient(145deg, #121212, #181818);
+  border: 1px solid rgba(204, 0, 0, 0.5);
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+}
+
 .favorito-title {
   color: #fff;
   font-size: 2rem;
@@ -90,6 +98,64 @@
   font-size: 0.95rem;
 }
 
+.favorito-data-wrap {
+  margin-top: 1.2rem;
+}
+
+.favorito-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.favorito-panel {
+  background: linear-gradient(140deg, rgba(28, 28, 28, 0.95), rgba(18, 18, 18, 0.95));
+  border: 1px solid #cc0000;
+  border-radius: 14px;
+  padding: 1.2rem;
+  color: #f4f4f4;
+}
+
+.favorito-panel h2,
+.favorito-panel h3 {
+  margin: 0 0 0.8rem 0;
+}
+
+.favorito-panel p {
+  margin: 0.4rem 0;
+  color: #d9d9d9;
+}
+
+.favorito-panel small {
+  display: block;
+  margin-top: 0.8rem;
+  color: #a6a6a6;
+}
+
+.favorito-panel-full {
+  grid-column: 1 / -1;
+}
+
+.alineacion-lista,
+.partidos-favoritos-lista {
+  margin: 0.8rem 0 0 0;
+  padding-left: 1.1rem;
+}
+
+.alineacion-lista li,
+.partidos-favoritos-lista li {
+  margin-bottom: 0.4rem;
+}
+
+.partidos-favoritos-lista li {
+  border: 1px solid rgba(204, 0, 0, 0.35);
+  border-radius: 10px;
+  padding: 0.7rem;
+  list-style: none;
+  margin-left: -1.1rem;
+  background-color: rgba(204, 0, 0, 0.07);
+}
+
 @media (max-width: 768px) {
   .mi-perfil-page {
     padding: 1rem 0.5rem;
@@ -107,9 +173,16 @@
     flex-direction: column;
   }
 
+  .favorito-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .favorito-panel-full {
+    grid-column: auto;
+  }
+
   .favorito-select,
   .favorito-btn {
     width: 100%;
   }
 }
-

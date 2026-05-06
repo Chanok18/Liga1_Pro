@@ -29,9 +29,13 @@ function Navbar({ vistaActiva, onCambiarVista, onCerrarSesion }) {
             </button>
           </li>
           <li className="nav-item">
-            <span className="nav-link nav-link-disabled">
-              Fixture
-            </span>
+            <button
+              type="button"
+              className={`nav-link nav-link-btn ${vistaActiva === 'equipos' ? 'active' : ''}`}
+              onClick={() => onCambiarVista('equipos')}
+            >
+              Equipos
+            </button>
           </li>
           <li className="nav-item">
             <span className="nav-link nav-link-disabled">

@@ -3,6 +3,7 @@ import './App.css'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import MiPerfil from './pages/MiPerfil'
+import Equipos from './pages/Equipos'
 import Auth from './pages/Auth'
 
 function App() {
@@ -49,7 +50,9 @@ function App() {
         onCerrarSesion={cerrarSesion}
       />
       <main>
-        {vistaActiva === 'perfil' ? <MiPerfil /> : <Home />}
+        {vistaActiva === 'perfil' && <MiPerfil />}
+        {vistaActiva === 'equipos' && <Equipos />}
+        {vistaActiva === 'inicio' && <Home />}
       </main>
     </div>
   )

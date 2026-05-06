@@ -21,15 +21,19 @@ public class Equipo {
     @Column(name = "estadio")
     private String estadio;
 
+    @Column(name = "api_football_team_id")
+    private Integer apiFootballTeamId;
+
     public Equipo() {
     }
 
-    public Equipo(Long id, String nombre, String logoUrl, String ciudad, String estadio) {
+    public Equipo(Long id, String nombre, String logoUrl, String ciudad, String estadio, Integer apiFootballTeamId) {
         this.id = id;
         this.nombre = nombre;
         this.logoUrl = logoUrl;
         this.ciudad = ciudad;
         this.estadio = estadio;
+        this.apiFootballTeamId = apiFootballTeamId;
     }
 
     public Long getId() {
@@ -70,5 +74,13 @@ public class Equipo {
 
     public void setEstadio(String estadio) {
         this.estadio = estadio;
+    }
+
+    public Integer getApiFootballTeamId() {
+        return apiFootballTeamId;
+    }
+
+    public void setApiFootballTeamId(Integer apiFootballTeamId) {
+        this.apiFootballTeamId = apiFootballTeamId;
     }
 }

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 async function buildApiError(response, fallbackMessage) {
   let message = fallbackMessage
@@ -88,6 +88,19 @@ export async function actualizarEquipoFavoritoUsuario(usuarioId, equipoId) {
     })
     if (!response.ok) {
       throw await buildApiError(response, 'Error updating equipo favorito')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error:', error)
+    throw error
+  }
+}
+
+export async function fetchInicioFavoritoUsuario(usuarioId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/usuarios/${usuarioId}/inicio-favorito`)
+    if (!response.ok) {
+      throw await buildApiError(response, 'No se pudo cargar informacion personalizada')
     }
     return await response.json()
   } catch (error) {
