@@ -161,3 +161,84 @@ Proyecto educativo - Liga1 Pro
 - Backend: Kevin
 - Frontend: Rony
 - Backend: Mauricio
+
+## Diagrama Entidad-Relacion (ERD)
+
+GitHub renderiza este bloque automaticamente:
+
+```mermaid
+erDiagram
+    USUARIOS {
+        BIGINT id
+        VARCHAR username
+        VARCHAR email
+        VARCHAR password
+        VARCHAR nombre_completo
+        BOOLEAN activo
+        VARCHAR rol
+        BIGINT equipo_favorito_id
+    }
+
+    EQUIPOS {
+        BIGINT id
+        VARCHAR nombre
+        VARCHAR logo_url
+        VARCHAR ciudad
+        VARCHAR estadio
+        INT api_football_team_id
+    }
+
+    PARTIDOS {
+        BIGINT id
+        BIGINT equipo_local_id
+        BIGINT equipo_visitante_id
+        INT goles_local
+        INT goles_visitante
+        DATETIME fecha_hora
+        VARCHAR estado
+        INT minuto
+        VARCHAR estadio
+        INT jornada
+    }
+
+    JUGADORES {
+        BIGINT id
+        VARCHAR nombre
+        INT numero_camiseta
+        VARCHAR posicion
+        VARCHAR foto_url
+        BIGINT equipo_id
+    }
+
+    ESTADISTICAS_JUGADOR {
+        BIGINT id
+        BIGINT jugador_id
+        BIGINT partido_id
+        INT goles
+        INT asistencias
+        INT tarjetas_amarillas
+        INT tarjetas_rojas
+    }
+
+    TABLA_POSICIONES {
+        BIGINT id
+        BIGINT equipo_id
+        INT posicion
+        INT partidos_jugados
+        INT partidos_ganados
+        INT partidos_empatados
+        INT partidos_perdidos
+        INT goles_favor
+        INT goles_contra
+        INT diferencia_goles
+        INT puntos
+    }
+
+    EQUIPOS ||--o{ USUARIOS : tiene_favorito
+    EQUIPOS ||--o{ JUGADORES : tiene
+    EQUIPOS ||--o{ PARTIDOS : local
+    EQUIPOS ||--o{ PARTIDOS : visitante
+    EQUIPOS ||--o{ TABLA_POSICIONES : posiciona
+    JUGADORES ||--o{ ESTADISTICAS_JUGADOR : registra
+    PARTIDOS ||--o{ ESTADISTICAS_JUGADOR : incluye
+```
