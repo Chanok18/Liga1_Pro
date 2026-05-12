@@ -1,8 +1,20 @@
 package com.example.liga1pro.dto;
 
 public class AuthLoginRequest {
+    private String identifier;
     private String email;
     private String password;
+
+    public String getIdentifier() {
+        if (identifier != null && !identifier.isBlank()) {
+            return identifier;
+        }
+        return email;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
 
     public String getEmail() {
         return email;
@@ -20,4 +32,3 @@ public class AuthLoginRequest {
         this.password = password;
     }
 }
-

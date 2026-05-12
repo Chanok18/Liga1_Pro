@@ -109,14 +109,14 @@ export async function fetchInicioFavoritoUsuario(usuarioId) {
   }
 }
 
-export async function loginUsuario(email, password) {
+export async function loginUsuario(identifier, password) {
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ identifier, password })
     })
     if (!response.ok) {
       throw await buildApiError(response, 'No se pudo iniciar sesion')

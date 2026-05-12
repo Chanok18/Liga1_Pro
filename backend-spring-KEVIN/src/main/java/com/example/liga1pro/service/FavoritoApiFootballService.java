@@ -460,9 +460,6 @@ public class FavoritoApiFootballService {
     private String construirDescripcion(JsonNode equipoRemoto, String fallbackNombre) {
         String nombre = textoConFallback(equipoRemoto.path("strTeam").asText(), fallbackNombre);
         String descripcion = equipoRemoto.path("strDescriptionES").asText("");
-        if (descripcion.isBlank()) {
-            descripcion = equipoRemoto.path("strDescriptionEN").asText("");
-        }
         if (!descripcion.isBlank()) {
             return descripcion;
         }
@@ -607,9 +604,9 @@ public class FavoritoApiFootballService {
     private List<String> aliasesBusqueda(String nombre) {
         Map<String, List<String>> map = new HashMap<>();
         map.put("adt", List.of("ADT", "Asociacion Deportiva Tarma"));
-        map.put("alianza atletico", List.of("Alianza Atletico", "Alianza Atlético"));
+        map.put("alianza atletico", List.of("Alianza Atletico"));
         map.put("alianza lima", List.of("Alianza Lima"));
-        map.put("atletico grau", List.of("Atletico Grau", "Atlético Grau"));
+        map.put("atletico grau", List.of("Atletico Grau"));
         map.put("cienciano", List.of("Cienciano"));
         map.put("comerciantes unidos", List.of("Comerciantes Unidos"));
         map.put("cusco fc", List.of("Cusco FC", "Cusco"));
@@ -623,7 +620,7 @@ public class FavoritoApiFootballService {
         map.put("sport huancayo", List.of("Sport Huancayo"));
         map.put("sporting cristal", List.of("Sporting Cristal"));
         map.put("universitario de deportes", List.of("Universitario de Deportes", "Universitario"));
-        map.put("utc", List.of("UTC", "Universidad Tecnica de Cajamarca", "Universidad Técnica de Cajamarca"));
+        map.put("utc", List.of("UTC", "Universidad Tecnica de Cajamarca"));
 
         List<String> aliases = map.get(normalizar(nombre));
         if (aliases != null && !aliases.isEmpty()) {
@@ -653,3 +650,4 @@ public class FavoritoApiFootballService {
         }
     }
 }
+

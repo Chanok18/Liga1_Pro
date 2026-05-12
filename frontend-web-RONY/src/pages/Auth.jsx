@@ -6,6 +6,7 @@ function Auth({ onAuthSuccess }) {
   const [modo, setModo] = useState('login')
   const [nombreCompleto, setNombreCompleto] = useState('')
   const [username, setUsername] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [cargando, setCargando] = useState(false)
@@ -19,7 +20,7 @@ function Auth({ onAuthSuccess }) {
     try {
       let data
       if (modo === 'login') {
-        data = await loginUsuario(email, password)
+        data = await loginUsuario(identifier, password)
       } else {
         data = await registrarUsuario({ nombreCompleto, username, email, password })
       }
@@ -75,14 +76,25 @@ function Auth({ onAuthSuccess }) {
             </>
           )}
 
-          <input
-            className="auth-input"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          {modo === 'login' ? (
+            <input
+              className="auth-input"
+              type="text"
+              placeholder="Usuario o email"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+            />
+          ) : (
+            <input
+              className="auth-input"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          )}
           <input
             className="auth-input"
             type="password"
@@ -104,4 +116,3 @@ function Auth({ onAuthSuccess }) {
 }
 
 export default Auth
-

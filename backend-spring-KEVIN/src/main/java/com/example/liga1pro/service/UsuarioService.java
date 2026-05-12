@@ -82,12 +82,16 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    public Usuario iniciarSesion(String email, String password) {
-        if (email == null || email.isBlank() || password == null || password.isBlank()) {
+    public Usuario iniciarSesion(String identifier, String password) {
+        if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
             return null;
         }
 
-        Usuario usuario = usuarioRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT));
+        String normalizado = identifier.trim().toLowerCase(Locale.ROOT);
+        Usuario usuario = usuarioRepository.findByEmail(normalizado);
+        if (usuario == null) {
+            usuario = usuarioRepository.findByUsername(normalizado).orElse(null);
+        }
         if (usuario == null) {
             return null;
         }

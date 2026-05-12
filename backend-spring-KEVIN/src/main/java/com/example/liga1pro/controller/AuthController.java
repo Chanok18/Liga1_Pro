@@ -19,7 +19,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthLoginRequest credentials) {
-        Usuario usuario = usuarioService.iniciarSesion(credentials.getEmail(), credentials.getPassword());
+        Usuario usuario = usuarioService.iniciarSesion(credentials.getIdentifier(), credentials.getPassword());
         if (usuario == null) {
             return ResponseEntity.status(401).body(Map.of("message", "Credenciales invalidas"));
         }
