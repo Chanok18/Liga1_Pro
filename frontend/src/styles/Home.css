@@ -1,0 +1,35 @@
+.home-page {
+  min-height: 100vh;
+  background: #f4f4f4;
+  padding: 2rem 0 4rem;
+}
+
+.main-content {
+  width: min(1600px, 100%);
+  margin: 0 auto;
+  padding: 0 1.75rem 3rem;
+  display: grid;
+  gap: 2rem;
+}
+
+@media (max-width: 1100px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-primary-outline {
+  border: 1px solid rgba(227, 27, 35, 0.2);
+  background: transparent;
+  color: #111;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: 0 1rem;
+  }
+
+  .home-actions {
+    grid-template-columns: 1fr;
+  }
+}
