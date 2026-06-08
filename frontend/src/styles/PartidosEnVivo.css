@@ -1,0 +1,162 @@
+.partidos-en-vivo {
+  margin: 0;
+  padding: 0;
+}
+
+.partidos-en-vivo h2 {
+  font-size: 1.65rem;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+  font-weight: 800;
+}
+
+.partidos-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.partido-card {
+  background: #ffffff;
+  border: 1px solid rgba(227, 27, 35, 0.12);
+  border-radius: 1.75rem;
+  padding: 1.6rem;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 280px;
+}
+
+.partido-card-main {
+  min-height: 360px;
+  border: 1px solid #E31B23;
+  box-shadow: 0 18px 30px rgba(227, 27, 35, 0.16);
+  padding: 2rem;
+  background: #ffffff;
+  color: #111;
+}
+
+.partido-card-main .partido-header {
+  margin-bottom: 1.6rem;
+}
+
+.partido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.badge-en-vivo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #E31B23;
+  color: white;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.minuto {
+  color: #4b4b4b;
+  font-weight: 700;
+}
+
+.partido-contenido {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.equipo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: #1a1a1a;
+}
+
+.escudo {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+  min-height: 72px;
+  background: linear-gradient(135deg, #E31B23, #C20018);
+  color: white;
+  border-radius: 1rem;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 1.4rem;
+  box-shadow: 0 12px 24px rgba(227, 27, 35, 0.18);
+}
+
+.equipo span {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.marcador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(227, 27, 35, 0.1);
+  border-radius: 1.75rem;
+  padding: 1rem 1.5rem;
+}
+
+.goles {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #E31B23;
+}
+
+.partido-footer {
+  display: flex;
+  justify-content: center;
+  color: #5d5d5d;
+  font-size: 0.95rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.estadio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sin-partidos {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #666;
+  padding: 2rem 0;
+}
+
+@media (max-width: 900px) {
+  .partidos-container {
+    grid-template-columns: 1fr;
+  }
+
+  .partido-card-main {
+    grid-column: auto;
+  }
+
+  .escudo {
+    width: 55px;
+    height: 55px;
+    font-size: 1rem;
+  }
+
+  .marcador {
+    padding: 0.9rem 1rem;
+  }
+}

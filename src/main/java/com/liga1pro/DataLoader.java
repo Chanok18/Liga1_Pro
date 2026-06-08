@@ -2,14 +2,20 @@ package com.liga1pro;
 
 import com.liga1pro.model.Equipo;
 import com.liga1pro.model.EstadoPartido;
+import com.liga1pro.model.GrupoChat;
 import com.liga1pro.model.Jugador;
 import com.liga1pro.model.Partido;
+import com.liga1pro.model.Rol;
+import com.liga1pro.model.Usuario;
 import com.liga1pro.repository.EquipoFavoritoRepository;
 import com.liga1pro.repository.EquipoRepository;
+import com.liga1pro.repository.GrupoChatRepository;
 import com.liga1pro.repository.JugadorRepository;
 import com.liga1pro.repository.PartidoRepository;
+import com.liga1pro.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +32,9 @@ public class DataLoader implements CommandLineRunner {
         private final JugadorRepository jugadorRepository;
         private final PartidoRepository partidoRepository;
         private final EquipoFavoritoRepository equipoFavoritoRepository;
+        private final UsuarioRepository usuarioRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final GrupoChatRepository grupoChatRepository;
 
         @Override
         @Transactional
@@ -395,6 +404,53 @@ public class DataLoader implements CommandLineRunner {
 
                         System.out.println("=========================================================");
                         System.out.println("✅ Partidos cargados correctamente");
+                        System.out.println("=========================================================");
+                }
+
+                // =========================================================
+                // USUARIO ADMIN Y GRUPOS DE CHAT
+                // =========================================================
+                Usuario admin = usuarioRepository.findByEmail("admin@liga1pro.com")
+                        .orElseGet(() -> {
+                                Usuario newAdmin = Usuario.builder()
+                                                .nombre("Administrador Liga1 Pro")
+                                                .email("admin@liga1pro.com")
+                                                .password(passwordEncoder.encode("admin123"))
+                                                .rol(Rol.ADMIN)
+                                                .build();
+                                Usuario saved = usuarioRepository.save(newAdmin);
+                                System.out.println("=========================================================");
+                                System.out.println("✅ Usuario admin creado: admin@liga1pro.com / admin123");
+                                System.out.println("=========================================================");
+                                return saved;
+                        });
+
+                if (grupoChatRepository.count() == 0) {
+                        List<GrupoChat> grupos = Arrays.asList(
+                                        GrupoChat.builder()
+                                                        .nombre("Hinchada Crema")
+                                                        .descripcion("Conversaciones de Universitario")
+                                                        .admin(admin)
+                                                        .build(),
+                                        GrupoChat.builder()
+                                                        .nombre("Fans de Alianza")
+                                                        .descripcion("Debate y recomendaciones de Alianza")
+                                                        .admin(admin)
+                                                        .build(),
+                                        GrupoChat.builder()
+                                                        .nombre("Liga 1 General")
+                                                        .descripcion("Temas generales del torneo")
+                                                        .admin(admin)
+                                                        .build(),
+                                        GrupoChat.builder()
+                                                        .nombre("Análisis Táctico")
+                                                        .descripcion("Charlas tácticas y estadísticas")
+                                                        .admin(admin)
+                                                        .build()
+                        );
+                        grupoChatRepository.saveAll(grupos);
+                        System.out.println("=========================================================");
+                        System.out.println("✅ Grupos de chat creados correctamente");
                         System.out.println("=========================================================");
                 }
         }

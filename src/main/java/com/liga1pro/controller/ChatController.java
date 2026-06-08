@@ -1,6 +1,7 @@
 package com.liga1pro.controller;
 
 import com.liga1pro.dto.MensajeChatDTO;
+import com.liga1pro.model.GrupoChat;
 import com.liga1pro.model.MensajeChat;
 import com.liga1pro.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -8,15 +9,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Controller
+@RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
 public class ChatController {
@@ -41,16 +43,19 @@ public class ChatController {
     }
 
     @GetMapping("/partido/{partidoId}")
-    @ResponseBody
     public ResponseEntity<List<MensajeChat>> historialPartido(
             @PathVariable Long partidoId) {
         return ResponseEntity.ok(chatService.obtenerMensajesPartido(partidoId));
     }
 
     @GetMapping("/grupo/{grupoChatId}")
-    @ResponseBody
     public ResponseEntity<List<MensajeChat>> historialGrupo(
             @PathVariable Long grupoChatId) {
         return ResponseEntity.ok(chatService.obtenerMensajesGrupo(grupoChatId));
+    }
+
+    @GetMapping("/grupos")
+    public ResponseEntity<List<GrupoChat>> obtenerGrupos() {
+        return ResponseEntity.ok(chatService.obtenerGrupos());
     }
 }

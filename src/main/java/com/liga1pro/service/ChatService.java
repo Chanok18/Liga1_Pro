@@ -56,4 +56,9 @@ public class ChatService {
     public List<MensajeChat> obtenerMensajesGrupo(Long grupoChatId) {
         return mensajeChatRepository.findByGrupoChatIdOrderByTimestampAsc(grupoChatId);
     }
+
+    @Transactional(readOnly = true)
+    public List<GrupoChat> obtenerGrupos() {
+        return grupoChatRepository.findAll();
+    }
 }

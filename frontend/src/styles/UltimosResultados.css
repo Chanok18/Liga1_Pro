@@ -1,0 +1,141 @@
+.ultimos-resultados {
+  margin: 0;
+  padding: 0;
+}
+
+.resultados-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.resultados-header h2 {
+  font-size: 1.55rem;
+  color: #1a1a1a;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.ver-todos {
+  color: #E31B23;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: opacity 0.25s ease;
+  letter-spacing: 0.5px;
+}
+
+.ver-todos:hover {
+  opacity: 0.85;
+}
+
+.resultados-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.6rem;
+}
+
+.resultado-card {
+  background: #ffffff;
+  border: 1px solid rgba(227, 27, 35, 0.14);
+  border-radius: 1.8rem;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+}
+
+.resultado-card:hover {
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px);
+}
+
+.resultado-fecha {
+  background-color: #faf9f8;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(227, 27, 35, 0.08);
+}
+
+.resultado-match {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.8rem 1.5rem;
+  flex: 1;
+}
+
+.resultado-match .equipo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.resultado-match .logo {
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  min-height: 60px;
+  background: linear-gradient(135deg, #E31B23, #C20018);
+  color: white;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.resultado-match .equipo span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.marcador-resultado {
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #E31B23;
+  min-width: 60px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.resultado-estadio {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  padding: 1rem;
+  background-color: #fafafa;
+  border-top: 1px solid rgba(227, 27, 35, 0.08);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .resultados-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resultado-match .logo {
+    width: 50px;
+    height: 50px;
+    font-size: 1rem;
+  }
+
+  .marcador-resultado {
+    font-size: 1.3rem;
+    min-width: 40px;
+  }
+}
