@@ -5,6 +5,15 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Liga1 Pro - El Camino de Todo el Fútbol Peruano</title>
+    <script>
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual'
+      }
+      scrollTo(0, 0)
+      addEventListener('beforeunload', function () {
+        scrollTo(0, 0)
+      })
+    </script>
   </head>
   <body>
     <div id="root"></div>

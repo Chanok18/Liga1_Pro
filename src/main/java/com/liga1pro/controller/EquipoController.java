@@ -1,11 +1,13 @@
 package com.liga1pro.controller;
 
 import com.liga1pro.model.Equipo;
+import com.liga1pro.service.ApiFootballService;
 import com.liga1pro.service.EquipoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -16,10 +18,15 @@ import java.util.List;
 public class EquipoController {
 
     private final EquipoService equipoService;
+    private final ApiFootballService apiFootballService;
 
     @GetMapping
     public ResponseEntity<List<Equipo>> listarTodos() {
-        return ResponseEntity.ok(equipoService.listarTodos());
+        try {
+            return ResponseEntity.ok(apiFootballService.listarEquipos());
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.ok(equipoService.listarTodos());
+        }
     }
 
     @GetMapping("/{id}")
@@ -27,8 +34,12 @@ public class EquipoController {
         try {
             Equipo equipo = equipoService.buscarPorId(id);
             return ResponseEntity.ok(equipo);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (RuntimeException ex) {
+            try {
+                return ResponseEntity.ok(apiFootballService.buscarEquipoPorId(id));
+            } catch (ResponseStatusException ignored) {
+                return ResponseEntity.notFound().build();
+            }
         }
     }
 

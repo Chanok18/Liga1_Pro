@@ -31,15 +31,16 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/equipos/**").permitAll()
-                        .requestMatchers("/api/jugadores/**").permitAll()
-                        .requestMatchers("/api/partidos/**").permitAll()
-                        .requestMatchers("/api/tabla/**").permitAll()
+                        .requestMatchers("/api/equipos", "/api/equipos/**").permitAll()
+                        .requestMatchers("/api/jugadores", "/api/jugadores/**").permitAll()
+                        .requestMatchers("/api/partidos", "/api/partidos/**").permitAll()
+                        .requestMatchers("/api/tabla", "/api/tabla/**").permitAll()
                         .requestMatchers("/api/estadisticas", "/api/estadisticas/**").permitAll()
-                        .requestMatchers("/api/chat/**").permitAll()
+                        .requestMatchers("/api/noticias", "/api/noticias/**").permitAll()
+                        .requestMatchers("/api/chat", "/api/chat/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/api/favoritos/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/favoritos", "/api/favoritos/**").permitAll()
+                        .anyRequest().permitAll())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

@@ -20,7 +20,7 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String nombre;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -37,8 +37,21 @@ public class Usuario {
     @Column(name = "fecha_registro")
     private LocalDateTime fechaRegistro;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private Boolean activo = true;
+
+    @Column(name = "ultimo_acceso")
+    private LocalDateTime ultimoAcceso;
+
+    @Column(name = "fecha_eliminacion")
+    private LocalDateTime fechaEliminacion;
+
     @PrePersist
     protected void onCreate() {
         fechaRegistro = LocalDateTime.now();
+        if (activo == null) {
+            activo = true;
+        }
     }
 }

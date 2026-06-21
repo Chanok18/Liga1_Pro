@@ -2,6 +2,7 @@ package com.liga1pro.controller;
 
 import com.liga1pro.dto.EstadisticaJugadorDTO;
 import com.liga1pro.model.EstadisticaJugador;
+import com.liga1pro.service.ApiFootballService;
 import com.liga1pro.service.EstadisticaJugadorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.List;
 public class EstadisticaJugadorController {
 
     private final EstadisticaJugadorService estadisticaService;
+    private final ApiFootballService apiFootballService;
 
     @PostMapping
     public ResponseEntity<EstadisticaJugador> guardar(
@@ -27,17 +29,17 @@ public class EstadisticaJugadorController {
     @GetMapping("/jugador/{jugadorId}")
     public ResponseEntity<EstadisticaJugadorDTO> getResumenJugador(
             @PathVariable Long jugadorId) {
-        return ResponseEntity.ok(estadisticaService.obtenerResumenJugador(jugadorId));
+        return ResponseEntity.ok(apiFootballService.obtenerResumenJugador(jugadorId));
     }
 
     @GetMapping("/partido/{partidoId}")
     public ResponseEntity<List<EstadisticaJugador>> getPorPartido(
             @PathVariable Long partidoId) {
-        return ResponseEntity.ok(estadisticaService.obtenerPorPartido(partidoId));
+        return ResponseEntity.ok(apiFootballService.obtenerEstadisticasPartido(partidoId));
     }
 
     @GetMapping("/goleadores")
     public ResponseEntity<List<Object[]>> getTopGoleadores() {
-        return ResponseEntity.ok(estadisticaService.topGoleadores());
+        return ResponseEntity.ok(apiFootballService.obtenerTopGoleadores());
     }
 }

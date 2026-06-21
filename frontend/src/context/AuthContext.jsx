@@ -40,6 +40,10 @@ export function AuthProvider({ children }) {
     return savedToken ? getUserFromToken(savedToken) : null
   })
 
+  const needsUserRefresh = Boolean(
+    token && (!user?.id || !user?.email || !user?.nombre),
+  )
+
   useEffect(() => {
     const connectSocket = async () => {
       if (token) {
@@ -56,12 +60,16 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const fetchMe = async () => {
-      if (token && !user) {
+      if (token && (!user || needsUserRefresh)) {
         try {
           const response = await authService.getMe()
           if (response?.data) {
-            setUser(response.data)
-            localStorage.setItem('user', JSON.stringify(response.data))
+            const mergedUser = {
+              ...getUserFromToken(token),
+              ...response.data,
+            }
+            setUser(mergedUser)
+            localStorage.setItem('user', JSON.stringify(mergedUser))
           }
         } catch (error) {
           console.error('No se pudo obtener el usuario actual:', error)
@@ -71,7 +79,7 @@ export function AuthProvider({ children }) {
     }
 
     fetchMe()
-  }, [token, user])
+  }, [token, user, needsUserRefresh])
 
   const login = (tokenValue, userData) => {
     const decodedUser = getUserFromToken(tokenValue)

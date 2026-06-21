@@ -1,6 +1,7 @@
 package com.liga1pro.controller;
 
 import com.liga1pro.model.Jugador;
+import com.liga1pro.service.ApiFootballService;
 import com.liga1pro.service.JugadorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,16 +17,17 @@ import java.util.List;
 public class JugadorController {
 
     private final JugadorService jugadorService;
+    private final ApiFootballService apiFootballService;
 
     @GetMapping
     public ResponseEntity<List<Jugador>> listarTodos() {
-        return ResponseEntity.ok(jugadorService.listarTodos());
+        return ResponseEntity.ok(apiFootballService.listarJugadores());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Jugador> buscarPorId(@PathVariable Long id) {
         try {
-            Jugador jugador = jugadorService.buscarPorId(id);
+            Jugador jugador = apiFootballService.buscarJugadorPorId(id);
             return ResponseEntity.ok(jugador);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -34,7 +36,7 @@ public class JugadorController {
 
     @GetMapping("/equipo/{equipoId}")
     public ResponseEntity<List<Jugador>> listarPorEquipo(@PathVariable Long equipoId) {
-        return ResponseEntity.ok(jugadorService.listarPorEquipo(equipoId));
+        return ResponseEntity.ok(apiFootballService.listarJugadoresPorEquipo(equipoId));
     }
 
     @PostMapping

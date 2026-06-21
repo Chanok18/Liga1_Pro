@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
@@ -23,7 +24,9 @@ public class EquipoFavoritoController {
         if (favorito.isPresent()) {
             return ResponseEntity.ok(favorito.get());
         }
-        return ResponseEntity.ok(Map.of("equipo", (Object) null));
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("equipo", null);
+        return ResponseEntity.ok(payload);
     }
 
     @PostMapping

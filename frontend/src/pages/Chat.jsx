@@ -1,315 +1,361 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowRight, CalendarDays, MessageSquare, Radio, Send, Shield, ShieldAlert } from 'lucide-react'
 import { chatService, partidoService } from '../services/apiService'
 import { useAuth } from '../context/AuthContext'
 import { wsService } from '../services/wsService'
-import '../styles/Chat.css'
+
+const buildPartidoTitle = (partido) => {
+  if (!partido) return 'Partido en vivo'
+  return `${partido.equipoLocal?.nombre || 'Local'} vs ${partido.equipoVisitante?.nombre || 'Visitante'}`
+}
+
+const formatTime = (value) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+}
 
 export function Chat() {
   const { type, id } = useParams()
   const navigate = useNavigate()
   const { token, user } = useAuth()
-  const [view, setView] = useState(type && id ? 'conversation' : 'list')
+  const [favoriteTeam, setFavoriteTeam] = useState(null)
+  const [liveMatches, setLiveMatches] = useState([])
+  const [activeChat, setActiveChat] = useState({ kind: 'equipo', id: null })
+  const [activeMatch, setActiveMatch] = useState(null)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [groups, setGroups] = useState([])
-  const [selectedChat, setSelectedChat] = useState(null)
-  const [partidoInfo, setPartidoInfo] = useState(null)
+  const messagesEndRef = useRef(null)
+  const activeDestinationRef = useRef(null)
 
-  // Membresía de grupo
-  const [esMiembro, setEsMiembro] = useState(true)
-  const [totalMiembros, setTotalMiembros] = useState(0)
-  const [joinLoading, setJoinLoading] = useState(false)
+  const isMatchChat = activeChat.kind === 'partido'
+  const currentDestination = activeChat.kind === 'equipo' && activeChat.id
+    ? `/topic/equipo/${activeChat.id}`
+    : activeChat.kind === 'partido' && activeChat.id
+      ? `/topic/partido/${activeChat.id}`
+      : null
+
+  const headerTitle = isMatchChat ? buildPartidoTitle(activeMatch) : favoriteTeam?.nombre || 'Chat de tu equipo'
+  const headerSubtitle = isMatchChat
+    ? activeMatch?.estado === 'EN_VIVO'
+      ? 'Chat abierto mientras el partido esta en vivo'
+      : 'Chat cerrado porque el partido ya no esta en vivo'
+    : favoriteTeam
+      ? 'Canal compartido con usuarios que tienen este equipo favorito'
+      : 'Elige un equipo favorito para activar este chat'
+
+  const canSend = input.trim() && user?.id && currentDestination && (!isMatchChat || activeMatch?.estado === 'EN_VIVO')
 
   const isOwnMessage = (message) => {
     return message.usuario?.id === user?.id || message.usuario?.email === user?.email
   }
 
-  const chatsFiltrados = groups.filter((chat) =>
-    chat.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const sortedLiveMatches = useMemo(() => {
+    return [...liveMatches].sort((a, b) => buildPartidoTitle(a).localeCompare(buildPartidoTitle(b)))
+  }, [liveMatches])
 
-  const formatPreview = (chat) => chat.descripcion || 'Empieza la conversación...'
-
-  useEffect(() => {
-    loadGroups()
-  }, [])
-
-  useEffect(() => {
-    if (type && id) {
-      setView('conversation')
-      loadConversation()
+  const connectSocket = useCallback(async () => {
+    if (token && (!wsService.client || !wsService.client.connected)) {
+      await wsService.connect(token)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, id])
+  }, [token])
 
-  const loadGroups = async () => {
-    try {
-      const response = await chatService.getGrupos()
-      setGroups(response.data || [])
-    } catch (err) {
-      console.error('Error cargando grupos:', err)
-      setError('No se pudieron cargar los chats. Intenta más tarde.')
+  const subscribeTo = useCallback(async (destination) => {
+    if (!destination) return
+    await connectSocket()
+
+    if (activeDestinationRef.current && activeDestinationRef.current !== destination) {
+      wsService.desuscribirse(activeDestinationRef.current)
     }
-  }
 
-  const loadConversation = async () => {
+    activeDestinationRef.current = destination
+    wsService.desuscribirse(destination)
+    wsService.suscribirse(destination, (newMessage) => {
+      setMessages((prev) => [...prev, newMessage])
+    })
+  }, [connectSocket])
+
+  const loadFavoriteChat = useCallback(async () => {
+    if (!user?.id) return
+    setLoading(true)
+    setError('')
     try {
-      setLoading(true)
-      setError('')
-      setPartidoInfo(null)
-      setSelectedChat(null)
-
-      if (token && (!wsService.client || !wsService.client.connected)) {
-        await wsService.connect(token)
+      const [favoriteRes, liveRes] = await Promise.all([
+        chatService.getEquipoFavorito(user.id),
+        chatService.getPartidosVivo(),
+      ])
+      const equipo = favoriteRes.data?.equipo || null
+      setFavoriteTeam(equipo)
+      setLiveMatches(liveRes.data || [])
+      setActiveMatch(null)
+      setActiveChat({ kind: 'equipo', id: equipo?.id || null })
+      setMessages(favoriteRes.data?.mensajes || [])
+      if (equipo?.id) {
+        await subscribeTo(`/topic/equipo/${equipo.id}`)
       }
-
-      const routeType = type === 'grupo' ? 'grupo' : 'partido'
-      const destination = routeType === 'partido' ? `/topic/partido/${id}` : `/topic/grupo/${id}`
-
-      if (routeType === 'partido') {
-        const [msgRes, partidoRes] = await Promise.all([
-          chatService.getPartido(id),
-          partidoService.getById(id),
-        ])
-        setMessages(msgRes.data || [])
-        setPartidoInfo(partidoRes.data)
-        setEsMiembro(true) // chats de partido son de acceso libre
-      } else {
-        const [msgRes, groupsRes, infoRes] = await Promise.all([
-          chatService.getGrupo(id),
-          chatService.getGrupos(),
-          chatService.getInfoGrupo(id, user?.id),
-        ])
-        setMessages(msgRes.data || [])
-        setGroups(groupsRes.data || [])
-        const currentChat = groupsRes.data?.find((group) => group.id === Number(id))
-        setSelectedChat(currentChat || null)
-
-        setTotalMiembros(infoRes.data?.totalMiembros ?? 0)
-        setEsMiembro(infoRes.data?.esMiembro ?? false)
-      }
-
-      wsService.desuscribirse(destination)
-      wsService.suscribirse(destination, (newMessage) => {
-        setMessages((prev) => [...prev, newMessage])
-      })
     } catch (err) {
-      setError('No fue posible cargar el chat. Intenta de nuevo más tarde.')
+      setError('Selecciona un equipo favorito en Perfil para activar tu chat de comunidad.')
+      setFavoriteTeam(null)
+      setMessages([])
       console.error(err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [subscribeTo, user?.id])
 
-  const handleChatClick = (chatId) => {
-    setView('conversation')
-    navigate(`/chat/grupo/${chatId}`)
-  }
+  const loadMatchChat = useCallback(async (partidoId) => {
+    setLoading(true)
+    setError('')
+    try {
+      const [messagesRes, partidoRes, liveRes] = await Promise.all([
+        chatService.getPartido(partidoId),
+        partidoService.getById(partidoId),
+        chatService.getPartidosVivo(),
+      ])
+      setLiveMatches(liveRes.data || [])
+      setActiveMatch(partidoRes.data)
+      setActiveChat({ kind: 'partido', id: Number(partidoId) })
+      setMessages(messagesRes.data || [])
+      await subscribeTo(`/topic/partido/${partidoId}`)
+    } catch (err) {
+      setError('No fue posible abrir el chat del partido.')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }, [subscribeTo])
 
-  const handleBack = () => {
-    setView('list')
-    setMessages([])
-    setInput('')
-    setPartidoInfo(null)
+  useEffect(() => {
+    if (type === 'partido' && id) {
+      loadMatchChat(id)
+      return
+    }
+    loadFavoriteChat()
+  }, [id, loadFavoriteChat, loadMatchChat, type])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  useEffect(() => {
+    return () => {
+      if (activeDestinationRef.current) {
+        wsService.desuscribirse(activeDestinationRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(async () => {
+      try {
+        const liveRes = await chatService.getPartidosVivo()
+        setLiveMatches(liveRes.data || [])
+        if (isMatchChat && activeChat.id) {
+          const partidoRes = await partidoService.getById(activeChat.id)
+          setActiveMatch(partidoRes.data)
+        }
+      } catch (err) {
+        console.error('No se pudo actualizar el estado de chats en vivo:', err)
+      }
+    }, 30000)
+
+    return () => window.clearInterval(intervalId)
+  }, [activeChat.id, isMatchChat])
+
+  const openFavoriteChat = () => {
     navigate('/chat')
+    loadFavoriteChat()
   }
 
-  const handleJoin = async () => {
-    if (!user?.id) return
-    setJoinLoading(true)
-    try {
-      await chatService.unirseAGrupo(id, user.id)
-      setEsMiembro(true)
-      setTotalMiembros((prev) => prev + 1)
-    } catch (err) {
-      console.error('Error al unirse:', err)
-    } finally {
-      setJoinLoading(false)
-    }
-  }
-
-  const handleLeave = async () => {
-    if (!user?.id) return
-    setJoinLoading(true)
-    try {
-      await chatService.salirDeGrupo(id, user.id)
-      setEsMiembro(false)
-      setTotalMiembros((prev) => Math.max(0, prev - 1))
-    } catch (err) {
-      console.error('Error al salir:', err)
-    } finally {
-      setJoinLoading(false)
-    }
+  const openMatchChat = (partidoId) => {
+    navigate(`/chat/partido/${partidoId}`)
   }
 
   const handleSend = () => {
-    if (!input.trim()) return
+    if (!canSend) return
 
-    if (type === 'grupo' && id) {
-      const payload = {
-        contenido: input.trim(),
-        usuarioId: user?.id || 0,
-        partidoId: null,
-        grupoChatId: Number(id),
-        tipo: 'GRUPO',
-      }
-      wsService.publicar(`/app/chat.grupo/${id}`, payload)
-      setInput('')
-    } else if (type === 'partido' && id) {
-      const payload = {
-        contenido: input.trim(),
-        usuarioId: user?.id || 0,
-        partidoId: Number(id),
-        grupoChatId: null,
+    const contenido = input.trim()
+    if (isMatchChat) {
+      wsService.publicar(`/app/chat.partido/${activeChat.id}`, {
+        contenido,
+        usuarioId: user.id,
+        partidoId: Number(activeChat.id),
         tipo: 'PARTIDO',
-      }
-      wsService.publicar(`/app/chat.partido/${id}`, payload)
-      setInput('')
+      })
+    } else {
+      wsService.publicar(`/app/chat.equipo/${activeChat.id}`, {
+        contenido,
+        usuarioId: user.id,
+        equipoId: Number(activeChat.id),
+        tipo: 'EQUIPO',
+      })
     }
+    setInput('')
   }
 
-  // Vista de lista de chats
-  if (view === 'list') {
-    return (
-      <section className="chat-page">
-        <div className="chat-card chat-list-card">
-          <div className="chats-header">
-            <div>
-              <p className="section-label">Mensajes</p>
-              <h1>Chats</h1>
-            </div>
-          </div>
-
-          <div className="search-container">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Buscar conversaciones..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="chats-list">
-            {chatsFiltrados.length === 0 ? (
-              <div className="empty-state">
-                <p>No se encontraron chats</p>
-              </div>
-            ) : (
-              chatsFiltrados.map(chat => (
-                <div
-                  key={chat.id}
-                  className="chat-item"
-                  onClick={() => handleChatClick(chat.id)}
-                >
-                  <div className="chat-avatar">{chat.icono || chat.nombre?.charAt(0)}</div>
-                  <div className="chat-content">
-                    <div className="chat-header-row">
-                      <h3 className="chat-name">{chat.nombre}</h3>
-                    </div>
-                    <p className="chat-preview">{formatPreview(chat)}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  // Header dinámico según tipo
-  const headerTitle = type === 'partido' && partidoInfo
-    ? `${partidoInfo.equipoLocal?.nombre} vs ${partidoInfo.equipoVisitante?.nombre}`
-    : selectedChat?.nombre || 'Chat'
-
-  const headerSubtitle = type === 'partido' && partidoInfo
-    ? `⚽ Chat en vivo del partido — ${partidoInfo.estado}`
-    : `${totalMiembros} miembro${totalMiembros !== 1 ? 's' : ''}`
-
-  const headerIcon = type === 'partido' ? '⚽' : (selectedChat?.icono || selectedChat?.nombre?.charAt(0) || '💬')
-
-  // Vista de conversación
   return (
-    <section className="chat-page">
-      <div className="chat-card conversation-card">
-        <div className="conversation-header">
-          <button className="back-button" onClick={handleBack}>
-            ← Chats
-          </button>
-          <div className="conversation-title">
-            <div className="chat-avatar large">{headerIcon}</div>
-            <div>
-              <h2>{headerTitle}</h2>
-              <p className="members-info">{headerSubtitle}</p>
-            </div>
+    <section className="flex min-h-[calc(100vh-100px)] max-w-6xl flex-col py-8">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 font-mono text-xs font-bold uppercase text-primary">
+            <MessageSquare className="h-4 w-4" />
+            Comunidad
           </div>
-          {type === 'grupo' && esMiembro && (
-            <button className="btn btn-secondary" onClick={handleLeave} disabled={joinLoading} style={{ marginLeft: 'auto' }}>
-              Salir del grupo
-            </button>
-          )}
+          <h1 className="text-3xl text-white md:text-5xl">Chat de comunidad</h1>
+          <p className="mt-3 max-w-2xl text-text-muted">
+            Conversa en tiempo real con usuarios de tu equipo favorito y entra a los chats de partidos mientras esten en vivo.
+          </p>
         </div>
+        <Link to="/perfil" className="btn-secondary px-5 py-3">
+          Cambiar favorito
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
 
-        {loading ? (
-          <div className="loading-card"><p>Cargando chat...</p></div>
-        ) : error ? (
-          <div className="error-card"><p>{error}</p></div>
-        ) : type === 'grupo' && !esMiembro ? (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-            <p style={{ marginBottom: '1.5rem', color: '#718096' }}>
-              {selectedChat?.descripcion}
-            </p>
-            <p style={{ marginBottom: '1.5rem' }}>
-              Únete a este grupo para ver los mensajes y participar en la conversación.
-            </p>
-            <button className="btn btn-primary" onClick={handleJoin} disabled={joinLoading}>
-              {joinLoading ? 'Uniéndome...' : '➕ Unirme al grupo'}
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="messages-container">
-              {messages.length === 0 ? (
-                <div className="empty-messages">
-                  <p>Aún no hay mensajes en este chat.</p>
+      <div className="grid flex-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="glass-panel-active flex flex-col gap-5 p-5">
+          <button
+            type="button"
+            onClick={openFavoriteChat}
+            className={`group flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-all ${
+              !isMatchChat ? 'border-primary/50 bg-primary/15' : 'border-white/10 bg-white/5 hover:border-primary/40'
+            }`}
+          >
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-white/10 bg-primary/15 text-primary">
+              {favoriteTeam?.escudo ? (
+                <img src={favoriteTeam.escudo} alt={favoriteTeam.nombre} className="h-8 w-8 object-contain" />
+              ) : (
+                <Shield className="h-6 w-6" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-white">Mi equipo favorito</p>
+              <p className="truncate text-sm text-text-muted">{favoriteTeam?.nombre || 'Sin equipo seleccionado'}</p>
+            </div>
+          </button>
+
+          <div>
+            <div className="mb-3 flex items-center gap-2 font-mono text-xs font-bold uppercase text-text-muted">
+              <Radio className="h-4 w-4 text-primary" />
+              Partidos en vivo
+            </div>
+            <div className="space-y-3">
+              {sortedLiveMatches.length === 0 ? (
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-text-muted">
+                  No hay partidos en vivo ahora.
                 </div>
               ) : (
-                messages.map((message, index) => (
-                  <div
-                    key={`${message.id ?? index}-${message.contenido}-${index}`}
-                    className={`message-bubble ${isOwnMessage(message) ? 'mine' : 'other'}`}
+                sortedLiveMatches.map((partido) => (
+                  <button
+                    type="button"
+                    key={partido.id}
+                    onClick={() => openMatchChat(partido.id)}
+                    className={`w-full rounded-lg border p-4 text-left transition-all ${
+                      isMatchChat && Number(activeChat.id) === Number(partido.id)
+                        ? 'border-primary/50 bg-primary/15'
+                        : 'border-white/10 bg-white/5 hover:border-primary/40'
+                    }`}
                   >
-                    <span className="message-user">{message.usuario?.nombre || message.usuario?.email || 'Usuario'}</span>
-                    <p className="message-text">{message.contenido}</p>
-                  </div>
+                    <p className="font-bold text-white">{buildPartidoTitle(partido)}</p>
+                    <p className="mt-1 flex items-center gap-2 text-xs font-semibold uppercase text-primary">
+                      <CalendarDays className="h-3 w-3" />
+                      En vivo
+                    </p>
+                  </button>
                 ))
               )}
             </div>
+          </div>
+        </aside>
 
-            {type === 'partido' && partidoInfo?.estado === 'FINALIZADO' ? (
-              <div className="chat-closed-banner">
-                🔒 Este chat se cerró porque el partido finalizó
+        <div className="glass-panel-active flex min-h-[640px] flex-col overflow-hidden p-0">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-surface-light p-5">
+            <div className="min-w-0">
+              <h2 className="truncate text-2xl text-white">{headerTitle}</h2>
+              <p className="mt-1 truncate text-sm text-text-muted">{headerSubtitle}</p>
+            </div>
+            <span className={`rounded-full border px-3 py-2 font-mono text-xs font-bold uppercase ${
+              isMatchChat ? 'border-primary/30 bg-primary/10 text-primary' : 'border-white/10 bg-white/5 text-text-muted'
+            }`}>
+              {isMatchChat ? 'Partido' : 'Equipo'}
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-1 items-center justify-center font-semibold text-text-muted">Conectando...</div>
+          ) : error ? (
+            <div role="alert" className="flex flex-1 flex-col items-center justify-center gap-5 p-8 text-center">
+              <ShieldAlert className="h-14 w-14 text-primary" />
+              <p className="max-w-md text-text-muted">{error}</p>
+              <Link to="/perfil" className="btn-primary px-6 py-3">Elegir equipo favorito</Link>
+            </div>
+          ) : (
+            <>
+              <div className="flex-1 space-y-4 overflow-y-auto bg-background p-4 md:p-6" aria-live="polite">
+                {messages.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center text-text-muted">
+                    <p className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold">
+                      Todavia no hay mensajes. Inicia la conversacion.
+                    </p>
+                  </div>
+                ) : (
+                  messages.map((message, index) => {
+                    const isMine = isOwnMessage(message)
+                    return (
+                      <div key={`${message.id ?? index}-${index}`} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                        <span className={`mb-1 px-1 text-xs font-bold uppercase ${isMine ? 'text-primary' : 'text-text-muted'}`}>
+                          {message.usuario?.nombre || message.usuario?.email || 'Usuario'}
+                          {message.timestamp ? ` - ${formatTime(message.timestamp)}` : ''}
+                        </span>
+                        <div className={`max-w-[82%] rounded-lg border px-4 py-3 md:max-w-[70%] ${
+                          isMine
+                            ? 'border-primary/40 bg-primary/20 text-white'
+                            : 'border-white/10 bg-white/5 text-white'
+                        }`}>
+                          <p className="whitespace-pre-wrap break-words text-sm md:text-base">{message.contenido}</p>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+                <div ref={messagesEndRef} />
               </div>
-            ) : (
-              <div className="message-input-area">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Escribe un mensaje..."
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  className="message-input"
-                />
-                <button className="send-button" onClick={handleSend}>Enviar</button>
+
+              <div className="border-t border-white/10 bg-surface-light p-4">
+                {isMatchChat && activeMatch?.estado !== 'EN_VIVO' ? (
+                  <p className="text-center text-sm font-semibold text-text-muted">
+                    Este chat se cerro porque el partido ya no esta en vivo.
+                  </p>
+                ) : (
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(event) => setInput(event.target.value)}
+                      onKeyDown={(event) => event.key === 'Enter' && handleSend()}
+                      placeholder="Escribe un mensaje..."
+                      aria-label="Escribe un mensaje"
+                      className="w-full pl-4 pr-14"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSend}
+                      disabled={!canSend}
+                      aria-label="Enviar mensaje"
+                      className="typeui-icon-button absolute right-2 p-2"
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </section>
   )

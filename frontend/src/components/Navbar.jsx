@@ -1,150 +1,186 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import '../styles/Navbar.css'
+import {
+  BarChart3,
+  CalendarDays,
+  Home,
+  LogIn,
+  MessageSquare,
+  Newspaper,
+  Settings,
+  Shield,
+  TableProperties,
+  User,
+  UserPlus,
+} from 'lucide-react'
+import { cn } from '../utils/cn'
+import gsap from 'gsap'
 
 const navItems = [
-  {
-    label: 'Inicio',
-    to: '/',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 11L12 3L21 11V20C21 20.5523 20.5523 21 20 21H15C14.4477 21 14 20.5523 14 20V15C14 14.4477 13.5523 14 13 14H11C10.4477 14 10 14.4477 10 15V20C10 20.5523 9.55228 21 9 21H4C3.44772 21 3 20.5523 3 20V11Z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Fixture',
-    to: '/fixture',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.75"/>
-        <path d="M8 3V7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <path d="M16 3V7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <path d="M3 11H21" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Tabla',
-    to: '/tabla',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 5H20V19H4V5Z" stroke="currentColor" strokeWidth="1.75"/>
-        <path d="M4 10H20" stroke="currentColor" strokeWidth="1.75"/>
-        <path d="M10 5V19" stroke="currentColor" strokeWidth="1.75"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Clubes',
-    to: '/clubes',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 7C8 9.20914 6.20914 11 4 11C1.79086 11 0 9.20914 0 7C0 4.79086 1.79086 3 4 3C6.20914 3 8 4.79086 8 7Z" transform="translate(6 5)" stroke="currentColor" strokeWidth="1.75"/>
-        <path d="M17 14C19.4853 14 21.5 11.9853 21.5 9.5C21.5 7.01472 19.4853 5 17 5C14.5147 5 12.5 7.01472 12.5 9.5C12.5 11.9853 14.5147 14 17 14Z" stroke="currentColor" strokeWidth="1.75"/>
-        <path d="M2 20C2 16.6863 4.68629 14 8 14H10C13.3137 14 16 16.6863 16 20" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Estadísticas',
-    to: '/estadisticas',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 19V10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <path d="M10 19V6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <path d="M16 19V13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <path d="M22 19V16" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Noticias',
-    to: '/noticias',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 6H20" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <path d="M4 12H20" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <path d="M4 18H14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.75"/>
-      </svg>
-    ),
-  },
+  { label: 'Inicio', to: '/', icon: Home, detail: 'Landing y acceso principal', public: true },
+  { label: 'Principal', to: '/principal', icon: Home, detail: 'Resumen privado de la jornada', requiresAuth: true },
+  { label: 'Partidos', to: '/fixture', icon: CalendarDays, detail: 'Partidos, sedes y estado', requiresAuth: true },
+  { label: 'Clasificacion', to: '/tabla', icon: TableProperties, detail: 'Clasificacion y puntos', requiresAuth: true },
+  { label: 'Clubes', to: '/clubes', icon: Shield, detail: 'Plantillas y datos de club', requiresAuth: true },
+  { label: 'Estadisticas', to: '/estadisticas', icon: BarChart3, detail: 'Goles, ranking y rendimiento', requiresAuth: true },
+  { label: 'Noticias', to: '/noticias', icon: Newspaper, detail: 'Actualidad del torneo', requiresAuth: true },
 ]
-
-const ChatIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 4H20V16H5.5L4 18.5V4Z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M8 9H16" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-    <path d="M8 13H11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-  </svg>
-)
-
-const UserIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="currentColor" strokeWidth="1.75"/>
-    <path d="M4 22C4 17.5817 7.58172 14 12 14C16.4183 14 20 17.5817 20 22" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-  </svg>
-)
 
 export function Navbar() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const navRef = useRef(null)
+  const visibleNavItems = user ? navItems.filter((item) => !item.public) : []
+  const isPublicHeader = !user && location.pathname === '/'
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    gsap.fromTo(
+      navRef.current,
+      { y: -28, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out' }
+    )
+  }, [])
+
+  const openAuthModal = (mode) => {
+    const params = new URLSearchParams(location.search)
+    params.set('auth', mode)
+    params.set('redirect', '/principal')
+    navigate(
+      { pathname: location.pathname, search: params.toString() },
+      { state: { from: location, authScrollY: window.scrollY } },
+    )
+  }
+
+  const handleProtectedNav = (event, to) => {
+    if (user) return
+    event.preventDefault()
+    const params = new URLSearchParams(location.search)
+    params.set('auth', 'login')
+    params.set('redirect', to)
+    navigate(
+      { pathname: location.pathname, search: params.toString() },
+      { state: { from: location, authScrollY: window.scrollY } },
+    )
+  }
+
+  const handleBrandClick = () => {
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+      return
+    }
+
+    navigate('/')
+  }
+
+  const navLinkClass = ({ isActive }) => cn(
+    'typeui-nav-link flex items-center gap-2 px-3 py-2 text-sm font-bold',
+    isActive && 'typeui-nav-link-active'
+  )
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <div className="navbar-left">
-          <div className="navbar-logo">
-            <img
-              src="https://assets.football-logos.cc/logos/peru/256x256/peruvian-primera-division.c6f20ea8.png"
-              alt="Liga 1"
-              style={{ width: '32px', height: '32px', objectFit: 'contain' }}
-            />
-            <div className="logo-copy">
-              <span className="logo-text">Liga1 Pro</span>
-              <span className="logo-tag">Fútbol PERUANO</span>
-            </div>
-          </div>
-        </div>
+    <nav ref={navRef} className={cn('typeui-nav', isPublicHeader && 'typeui-nav-public')} aria-label="Navegacion principal">
+      <div className="typeui-nav-inner px-3 sm:px-4">
+        <div className="flex min-h-[62px] items-center justify-between gap-3">
+          <button
+            type="button"
+            className="typeui-brand-button flex items-center gap-3 px-2 py-1 text-left"
+            onClick={handleBrandClick}
+            aria-label="Ir al inicio"
+          >
+            <span className="brand-mark">
+              <Shield className="h-5 w-5" />
+            </span>
+            <span className="hidden flex-col sm:flex">
+              <span className="brand-title">Liga1<span>Pro</span></span>
+              <span className="brand-subtitle">Football intelligence</span>
+            </span>
+          </button>
 
-        <ul className="nav-menu">
-          {navItems.map((item) => (
-            <li key={item.label}>
+          {visibleNavItems.length > 0 && (
+            <div className="hidden items-center gap-1 lg:flex">
+              {visibleNavItems.map((item) => (
               <NavLink
+                key={item.label}
                 to={item.to}
-                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-                end={item.to === '/'}
+                className={navLinkClass}
+                end={item.to === '/' || item.to === '/principal'}
+                onClick={(event) => item.requiresAuth && handleProtectedNav(event, item.to)}
               >
-                <span className="nav-link-icon">{item.icon}</span>
+                <item.icon className="h-4 w-4" />
                 {item.label}
               </NavLink>
-            </li>
-          ))}
-        </ul>
-
-        <div className="navbar-right">
-          {user ? (
-            <>
-              <button className="icon-btn" onClick={() => navigate('/chat')} title="Chat">
-                <ChatIcon />
-              </button>
-              <button className="icon-btn" onClick={() => navigate('/perfil')} title="Perfil">
-                <UserIcon />
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink to="/login" className="icon-btn" title="Iniciar sesión">
-                <ChatIcon />
-              </NavLink>
-              <NavLink to="/registro" className="icon-btn" title="Registro">
-                <UserIcon />
-              </NavLink>
-            </>
+              ))}
+            </div>
           )}
+
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                {user?.rol === 'ADMIN' && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/admin')}
+                    className="typeui-icon-button h-11 w-11"
+                    aria-label="Abrir panel de admin"
+                  >
+                    <Settings className="h-5 w-5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => navigate('/chat')}
+                  className="typeui-icon-button h-11 w-11"
+                  aria-label="Abrir chat"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/perfil')}
+                  className="typeui-icon-button h-11 w-11"
+                  aria-label="Abrir perfil"
+                >
+                  <User className="h-5 w-5" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => openAuthModal('login')} className="typeui-nav-link flex items-center gap-2 px-3 py-2 text-sm font-bold">
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">Ingresar</span>
+                </button>
+                <button type="button" onClick={() => openAuthModal('register')} className="btn-primary px-4 py-2 text-sm">
+                  <UserPlus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Registro</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {visibleNavItems.length > 0 && (
+        <div className="typeui-mobile-nav overflow-x-auto px-3 py-2 lg:hidden">
+          <div className="flex min-w-max items-center gap-2">
+            {visibleNavItems.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className={navLinkClass}
+                end={item.to === '/' || item.to === '/principal'}
+                onClick={(event) => item.requiresAuth && handleProtectedNav(event, item.to)}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }

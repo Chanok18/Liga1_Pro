@@ -28,8 +28,13 @@ public class AuthController {
         String email = datos.get("email");
         String password = datos.get("password");
 
-        if (nombre == null || email == null || password == null) {
-            return ResponseEntity.badRequest().body("Nombre, email y password son requeridos");
+        if (nombre == null || nombre.isBlank() || email == null || email.isBlank() || password == null || password.isBlank()) {
+            return ResponseEntity.badRequest().body("Nombre de usuario, email y password son requeridos");
+        }
+        nombre = nombre.trim();
+        email = email.trim().toLowerCase();
+        if (usuarioRepository.findByNombre(nombre).isPresent()) {
+            return ResponseEntity.badRequest().body("Nombre de usuario ya registrado");
         }
         if (usuarioRepository.findByEmail(email).isPresent()) {
             return ResponseEntity.badRequest().body("Email ya registrado");
@@ -40,6 +45,7 @@ public class AuthController {
         usuario.setEmail(email);
         usuario.setPassword(passwordEncoder.encode(password));
         usuario.setRol(Rol.USER);
+        usuario.setActivo(true);
         usuario.setFechaRegistro(LocalDateTime.now());
         usuarioRepository.save(usuario);
 
@@ -48,13 +54,34 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
+        String identifier = credentials.get("identifier");
+        if (identifier == null || identifier.isBlank()) {
+            identifier = credentials.get("email");
+        }
         String password = credentials.get("password");
 
-        return usuarioRepository.findByEmail(email)
+        if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
+            return ResponseEntity.badRequest().body("Correo o nombre de usuario y password son requeridos");
+        }
+
+        String normalizedIdentifier = identifier.trim();
+
+        return findByIdentifier(normalizedIdentifier)
+                .filter(u -> !Boolean.FALSE.equals(u.getActivo()))
                 .filter(u -> passwordEncoder.matches(password, u.getPassword()))
-                .map(u -> ResponseEntity.ok(Map.of("token", jwtUtil.generateToken(email, u.getId()))))
+                .map(u -> {
+                    u.setUltimoAcceso(LocalDateTime.now());
+                    usuarioRepository.save(u);
+                    return ResponseEntity.ok(Map.of("token", jwtUtil.generateToken(u.getEmail(), u.getId())));
+                })
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    private java.util.Optional<Usuario> findByIdentifier(String identifier) {
+        if (identifier.contains("@")) {
+            return usuarioRepository.findByEmailIgnoreCase(identifier.toLowerCase());
+        }
+        return usuarioRepository.findByNombreIgnoreCase(identifier);
     }
 
     @GetMapping("/me")
@@ -69,6 +96,11 @@ public class AuthController {
         }
         String email = jwtUtil.extractEmail(token);
         return usuarioRepository.findByEmail(email)
+                .filter(u -> !Boolean.FALSE.equals(u.getActivo()))
+                .map(u -> {
+                    u.setUltimoAcceso(LocalDateTime.now());
+                    return usuarioRepository.save(u);
+                })
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }

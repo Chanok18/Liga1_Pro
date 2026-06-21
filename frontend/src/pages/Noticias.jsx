@@ -1,187 +1,207 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
-import { favoritoService } from '../services/apiService'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ExternalLink, Newspaper } from 'lucide-react'
+import { PageHeader } from '../components/PageHeader'
+import { noticiasService } from '../services/apiService'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const INITIAL_VISIBLE = 20
+
+const formatDate = (value) => {
+  if (!value) return 'Fecha no disponible'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('es-PE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 export function Noticias() {
-  const { user } = useAuth()
-  const [selectedCategory, setSelectedCategory] = useState('todas')
-  const [equipoFavorito, setEquipoFavorito] = useState(null)
+  const [feed, setFeed] = useState({ noticias: [], equipos: [], ligas: [] })
+  const [selectedTeam, setSelectedTeam] = useState('todos')
+  const [selectedLiga, setSelectedLiga] = useState('todas')
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
+  const [loading, setLoading] = useState(true)
+  const containerRef = useRef(null)
 
   useEffect(() => {
-    const loadFavorito = async () => {
-      if (user?.id) {
-        try {
-          const res = await favoritoService.get(user.id)
-          if (res.data?.nombre) {
-            setEquipoFavorito(res.data.nombre)
-          }
-        } catch (error) {
-          console.error('Error cargando favorito:', error)
-        }
+    const loadNoticias = async () => {
+      try {
+        const response = await noticiasService.get()
+        setFeed(response.data || { noticias: [], equipos: [], ligas: [] })
+      } catch (error) {
+        console.error('Error cargando noticias:', error)
+      } finally {
+        setLoading(false)
       }
     }
-    loadFavorito()
-  }, [user])
 
-  const categories = [
-    { id: 'todas', label: 'Todas' },
-    { id: 'resultados', label: 'Resultados' },
-    { id: 'fichajes', label: 'Fichajes' },
-    { id: 'previa', label: 'Previa' },
-    { id: 'estadisticas', label: 'Estadísticas' },
-    { id: 'noticias', label: 'Noticias' }
-  ]
+    loadNoticias()
+  }, [])
 
-  const noticias = [
-    {
-      id: 1,
-      categoria: 'resultados',
-      equipo: 'Universitario',
-      titulo: 'Universitario se mantiene en la cima tras vencer a Sport Boys',
-      descripcion: 'Los cremas lograron una importante victoria de visitante que los consolida como líderes del torneo.',
-      tiempo: 'Hace 2 horas',
-      imagen: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&h=400&fit=crop',
-      destacada: true
-    },
-    {
-      id: 2,
-      categoria: 'fichajes',
-      equipo: 'Alianza Lima',
-      titulo: 'Alianza Lima prepara refuerzos para el Clausura',
-      descripcion: 'La dirigencia blanquiazul trabaja en incorporaciones para mantener el ritmo en la segunda mitad del...',
-      tiempo: 'Hace 5 horas',
-      imagen: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=600&h=400&fit=crop'
-    },
-    {
-      id: 3,
-      categoria: 'previa',
-      equipo: 'FBC Melgar',
-      titulo: 'Melgar busca mantener su invicto en casa ante Sporting Cristal',
-      descripcion: 'El equipo arequipeño no conoce la derrota como local y buscará extender su racha este fin de...',
-      tiempo: 'Hace 8 horas',
-      imagen: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=600&h=400&fit=crop'
-    },
-    {
-      id: 4,
-      categoria: 'estadisticas',
-      equipo: 'Universitario',
-      titulo: 'La tabla de goleadores se aprieta en la Liga 1',
-      descripcion: 'Alex Valera lidera con 8 goles, pero varios delanteros están cerca de alcanzarlo.',
-      tiempo: 'Hace 12 horas',
-      imagen: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?w=600&h=400&fit=crop'
-    },
-    {
-      id: 5,
-      categoria: 'noticias',
-      equipo: 'Sport Boys',
-      titulo: 'Sport Boys ficha a joven promesa del fútbol peruano',
-      descripcion: 'El club rosado anunció la llegada de un talentoso lateral izquierdo para reforzar su defensa.',
-      tiempo: 'Hace 15 horas',
-      imagen: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&h=400&fit=crop'
-    },
-    {
-      id: 6,
-      categoria: 'resultados',
-      equipo: 'Sporting Cristal',
-      titulo: 'Cristal cae en sorpresivo resultado',
-      descripcion: 'Los cerveceros no pudieron cerrar el partido en un encuentro lleno de emociones.',
-      tiempo: 'Hace 18 horas',
-      imagen: 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=600&h=400&fit=crop'
-    },
-    {
-      id: 7,
-      categoria: 'fichajes',
-      equipo: 'Universitario',
-      titulo: 'Universitario evalúa incorporar un nuevo central para el Clausura',
-      descripcion: 'La dirección deportiva crema busca reforzar la zaga defensiva de cara a la siguiente etapa del torneo.',
-      tiempo: 'Hace 20 horas',
-      imagen: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=600&h=400&fit=crop'
-    },
-    {
-      id: 8,
-      categoria: 'previa',
-      equipo: 'Cienciano',
-      titulo: 'Cienciano se prepara para un duelo clave en el Cusco',
-      descripcion: 'El equipo imperial llega motivado tras su último resultado y buscará seguir sumando puntos en casa.',
-      tiempo: 'Hace 22 horas',
-      imagen: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&h=400&fit=crop'
-    },
-  ]
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE)
+  }, [selectedTeam, selectedLiga])
 
-  const noticiaDestacada = noticias.find(n => n.destacada)
-
-  let noticiasFiltradas = noticias.filter(n => !n.destacada)
-
-  if (selectedCategory !== 'todas') {
-    noticiasFiltradas = noticiasFiltradas.filter(n => n.categoria === selectedCategory)
-  }
-
-  if (equipoFavorito) {
-    noticiasFiltradas = [...noticiasFiltradas].sort((a, b) => {
-      const aFav = a.equipo === equipoFavorito ? 0 : 1
-      const bFav = b.equipo === equipoFavorito ? 0 : 1
-      return aFav - bFav
+  const noticiasFiltradas = useMemo(() => {
+    return (feed.noticias || []).filter((noticia) => {
+      const ligaOk = selectedLiga === 'todas' || noticia.liga === selectedLiga
+      const teamOk = selectedTeam === 'todos' || noticia.equipo === selectedTeam
+      return ligaOk && teamOk
     })
-  }
+  }, [feed, selectedLiga, selectedTeam])
+
+  const noticiasVisibles = noticiasFiltradas.slice(0, visibleCount)
+  const hasMore = visibleCount < noticiasFiltradas.length
+
+  useEffect(() => {
+    if (loading || noticiasVisibles.length === 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '.news-real-card',
+        { y: 24, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.45,
+          stagger: 0.04,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: '.news-real-grid', start: 'top 85%' },
+        }
+      )
+    }, containerRef)
+
+    return () => ctx.revert()
+  }, [loading, noticiasVisibles])
 
   return (
-    <section className="noticias-section">
-      <div className="noticias-header">
-        <h1>📰 Noticias</h1>
-        {equipoFavorito && (
-          <p className="section-description">Mostrando primero noticias de {equipoFavorito} ❤️</p>
-        )}
+    <section ref={containerRef} className="py-8">
+      <PageHeader
+        eyebrow="Actualidad"
+        title="Noticias Liga 1"
+        description="Titulares filtrados para Liga 1 de Peru y clubes actuales del torneo."
+        icon={Newspaper}
+      />
+
+      <div className="mb-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="grid flex-1 gap-4 md:grid-cols-2">
+          <label className="flex flex-col gap-2">
+            <span className="font-mono text-xs uppercase tracking-[0.24em] text-text-muted">Liga</span>
+            <select
+              value={selectedLiga}
+              onChange={(event) => setSelectedLiga(event.target.value)}
+              className="rounded-2xl border border-white/10 bg-background px-4 py-3 text-white outline-none transition-colors focus:border-primary/50"
+            >
+              <option value="todas">Todas</option>
+              {(feed.ligas || []).map((liga) => (
+                <option key={liga} value={liga}>{liga}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-2">
+            <span className="font-mono text-xs uppercase tracking-[0.24em] text-text-muted">Equipo</span>
+            <select
+              value={selectedTeam}
+              onChange={(event) => setSelectedTeam(event.target.value)}
+              className="rounded-2xl border border-white/10 bg-background px-4 py-3 text-white outline-none transition-colors focus:border-primary/50"
+            >
+              <option value="todos">Todos</option>
+              {(feed.equipos || []).map((equipo) => (
+                <option key={equipo} value={equipo}>{equipo}</option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
 
-      <div className="noticias-tabs">
-        {categories.map(cat => (
-          <button
-            key={cat.id}
-            className={`tab-button ${selectedCategory === cat.id ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(cat.id)}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: INITIAL_VISIBLE }).map((_, index) => (
+            <div key={index} className="skeleton-card h-[320px]" />
+          ))}
+        </div>
+      ) : noticiasFiltradas.length === 0 ? (
+        <div className="glass-panel p-10 text-center">
+          <h2 className="mb-3 text-2xl font-bold text-white">No hay noticias para ese filtro</h2>
+          <p className="text-text-muted">Prueba con otro equipo o vuelve a la vista completa de la liga.</p>
+        </div>
+      ) : (
+        <>
+          <div className="news-real-grid grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {noticiasVisibles.map((noticia) => (
+              <a
+                key={noticia.id}
+                href={noticia.url}
+                target="_blank"
+                rel="noreferrer"
+                className="news-real-card glass-panel flex h-full flex-col overflow-hidden p-0 transition-transform duration-300 hover:-translate-y-1 hover:border-primary/40"
+              >
+                <div className="relative h-44 overflow-hidden">
+                  {noticia.imagen ? (
+                    <img src={noticia.imagen} alt={noticia.titulo} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-surface-light text-primary">
+                      <Newspaper className="h-12 w-12" />
+                    </div>
+                  )}
+                </div>
 
-      {noticiaDestacada && (selectedCategory === 'todas' || noticiaDestacada.categoria === selectedCategory) && (
-        <article className="noticia-destacada">
-          <img src={noticiaDestacada.imagen} alt={noticiaDestacada.titulo} className="noticia-imagen" />
-          <div className="noticia-destacada-content">
-            <div className="noticia-badges">
-              <span className={`noticia-badge badge-${noticiaDestacada.categoria}`}>
-                {noticiaDestacada.equipo} • {noticiaDestacada.categoria.charAt(0).toUpperCase() + noticiaDestacada.categoria.slice(1)}
-              </span>
-              <span className="noticia-tiempo">
-                ⏱️ {noticiaDestacada.tiempo}
-              </span>
-            </div>
-            <h2 className="noticia-destacada-titulo">{noticiaDestacada.titulo}</h2>
-            <p className="noticia-destacada-descripcion">{noticiaDestacada.descripcion}</p>
+                <div className="flex flex-1 flex-col p-5">
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
+                      {noticia.liga}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-text-muted">
+                      {noticia.equipo}
+                    </span>
+                  </div>
+
+                  <h2 className="mb-3 text-lg font-bold leading-snug text-white">
+                    {noticia.titulo}
+                  </h2>
+
+                  <p className="mb-5 line-clamp-4 text-sm leading-relaxed text-text-muted">
+                    {noticia.descripcion || 'Sin resumen disponible en la fuente.'}
+                  </p>
+
+                  <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{noticia.fuente}</p>
+                      <p className="font-mono text-xs uppercase tracking-[0.16em] text-text-muted">
+                        {formatDate(noticia.fechaPublicacion)}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.16em] text-primary">
+                      Leer
+                      <ExternalLink className="h-4 w-4" />
+                    </span>
+                  </div>
+                </div>
+              </a>
+            ))}
           </div>
-        </article>
-      )}
 
-      <div className="noticias-grid">
-        {noticiasFiltradas.map(noticia => (
-          <article key={noticia.id} className={`noticia-card ${noticia.equipo === equipoFavorito ? 'noticia-favorita' : ''}`}>
-            <img src={noticia.imagen} alt={noticia.titulo} className="noticia-imagen" />
-            <div className="noticia-body">
-              <div className="noticia-badges">
-                <span className={`noticia-badge badge-${noticia.categoria}`}>
-                  {noticia.equipo === equipoFavorito && '❤️ '}{noticia.equipo} • {noticia.categoria.charAt(0).toUpperCase() + noticia.categoria.slice(1)}
-                </span>
-                <span className="noticia-tiempo">
-                  ⏱️ {noticia.tiempo}
-                </span>
-              </div>
-              <h3 className="noticia-titulo">{noticia.titulo}</h3>
-              <p className="noticia-descripcion">{noticia.descripcion}</p>
+          {hasMore && (
+            <div className="mt-10 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount(noticiasFiltradas.length)}
+                className="btn-secondary px-6 py-3"
+              >
+                Ver todos
+              </button>
             </div>
-          </article>
-        ))}
-      </div>
+          )}
+        </>
+      )}
     </section>
   )
 }

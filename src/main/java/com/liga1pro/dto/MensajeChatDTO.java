@@ -14,6 +14,7 @@ public class MensajeChatDTO {
     private String contenido;
     private Long usuarioId;
     private Long partidoId;
+    private Long equipoId;
     private Long grupoChatId;
     private TipoChat tipo;
 }

@@ -1,0 +1,61 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: '#050505',
+        surface: 'rgba(14, 14, 14, 0.88)',
+        'surface-light': 'rgba(255, 255, 255, 0.06)',
+        'neutral-primary-soft': '#0E0E0E',
+        'neutral-secondary-medium': '#191214',
+        'neutral-tertiary-medium': '#24181b',
+        heading: '#F7F2F3',
+        body: '#B7A6A8',
+        brand: '#e1485a',
+        'brand-softer': 'rgba(225, 72, 90, 0.14)',
+        'brand-soft': '#f7a9b4',
+        'brand-subtle': '#ef7b8a',
+        'brand-strong': '#bb3246',
+        purple: '#8B5CF6',
+        sky: '#7DD3FC',
+        teal: '#22D3EE',
+        pink: '#FB7185',
+        cyan: '#67E8F9',
+        fuchsia: '#E879F9',
+        indigo: '#818CF8',
+        orange: '#F9C74F',
+        default: 'rgba(255, 255, 255, 0.1)',
+        primary: '#e1485a',
+        'primary-hover': '#bb3246',
+        'primary-dark': '#bb3246',
+        'primary-light': '#f7a9b4',
+        secondary: '#7DD3FC',
+        border: 'rgba(255, 255, 255, 0.1)',
+        text: '#F7F2F3',
+        'text-muted': '#B7A6A8',
+        danger: '#FF4D6D',
+        warning: '#FFB703',
+        success: '#bb3246',
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+        mono: ['SFMono-Regular', 'Consolas', 'Liberation Mono', 'monospace'],
+      },
+      animation: {
+        glow: 'glow 2.2s ease-in-out infinite alternate',
+      },
+      keyframes: {
+        glow: {
+          '0%': { boxShadow: '0 0 16px rgba(225, 72, 90, 0.18)' },
+          '100%': { boxShadow: '0 0 38px rgba(225, 72, 90, 0.38)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}

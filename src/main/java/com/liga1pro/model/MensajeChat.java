@@ -30,6 +30,13 @@ public class MensajeChat {
     @JoinColumn(name = "partido_id", nullable = true)
     private Partido partido;
 
+    @Column(name = "partido_chat_id")
+    private Long partidoChatId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "equipo_id", nullable = true)
+    private Equipo equipo;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "grupo_chat_id", nullable = true)
     private GrupoChat grupoChat;

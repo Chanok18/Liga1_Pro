@@ -1,0 +1,13 @@
+{
+  "designSystemId": "e171bc79-2f86-4acf-a0dd-5ea84c4618fe",
+  "installScope": "project",
+  "skillFolderName": "typeui-design-system",
+  "slug": "colorful-design-system",
+  "source": "workspace",
+  "templateSlug": "colorful",
+  "type": "typeui-design-system",
+  "variant": "workspace",
+  "versionId": "9f6bbb1c-0dc1-4410-b731-8bbfc05992ee",
+  "versionNumber": 1,
+  "workspaceId": "fa5f27ec-3f3d-438b-b9d4-ad6a63438786"
+}

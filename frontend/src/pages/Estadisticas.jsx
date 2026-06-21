@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { estadisticasService } from '../services/apiService'
+import { BarChart3, Target, Activity, ShieldCheck } from 'lucide-react'
+import { PageHeader } from '../components/PageHeader'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 export function Estadisticas() {
   const [goleadores, setGoleadores] = useState([])
   const [asistentes, setAsistentes] = useState([])
   const [loading, setLoading] = useState(true)
+  const containerRef = useRef(null)
 
   useEffect(() => {
     const load = async () => {
@@ -17,21 +24,16 @@ export function Estadisticas() {
           nombre: `${item[0].nombre} ${item[0].apellido}`,
           equipo: item[0].equipo?.nombre || 'Sin equipo',
           goles: item[1] ?? 0,
-          asistencias: 0, // el backend no tiene endpoint separado aún
+          asistencias: 0,
         }))
 
-        // goleadores: ordenados por goles desc
         const porGoles = [...parsed].sort((a, b) => b.goles - a.goles)
         setGoleadores(porGoles)
 
-        // asistentes: los que tienen estadísticas cargadas desde el backend
-        // usamos el mismo endpoint pero filtramos por asistencias cuando el backend lo soporte
-        // por ahora mostramos los mismos jugadores ordenados por nombre
         const porAsistencias = [...parsed].sort((a, b) => b.asistencias - a.asistencias)
         setAsistentes(porAsistencias)
-
       } catch (error) {
-        console.error('Error cargando estadísticas:', error)
+        console.error('Error cargando estadisticas:', error)
       } finally {
         setLoading(false)
       }
@@ -39,12 +41,29 @@ export function Estadisticas() {
     load()
   }, [])
 
+  useEffect(() => {
+    if (!loading && goleadores.length > 0 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          '.stat-item',
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power2.out', scrollTrigger: { trigger: '.stats-lists', start: 'top 80%' } }
+        )
+        gsap.fromTo(
+          '.team-stat-card',
+          { scale: 0.92, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(1.4)', scrollTrigger: { trigger: '.team-stats-grid', start: 'top 85%' } }
+        )
+      }, containerRef)
+      return () => ctx.revert()
+    }
+  }, [loading, goleadores])
+
   const totalGoles = goleadores.reduce((sum, j) => sum + j.goles, 0)
   const promedioGoles = goleadores.length > 0
     ? (totalGoles / goleadores.length).toFixed(1)
     : '0.0'
 
-  // estadísticas de equipos calculadas desde goleadores
   const equipoGoles = goleadores.reduce((acc, j) => {
     acc[j.equipo] = (acc[j.equipo] || 0) + j.goles
     return acc
@@ -52,93 +71,88 @@ export function Estadisticas() {
   const mejorAtaque = Object.entries(equipoGoles).sort((a, b) => b[1] - a[1])[0]
 
   return (
-    <section className="section-card estadisticas-section">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Estadísticas</p>
-          <h1>Estadísticas del Torneo</h1>
-        </div>
-      </div>
+    <section ref={containerRef} className="py-8">
+      <PageHeader
+        eyebrow="Estadisticas"
+        title="Metricas del torneo"
+        description="Goleadores, asistencias y numeros clave de la Liga 1 Pro."
+        icon={BarChart3}
+      />
 
       {loading ? (
-        <p>Cargando estadísticas...</p>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="skeleton-card" />
+          <div className="skeleton-card" />
+        </div>
       ) : (
-        <>
-          <div className="stats-two-columns">
-            <article className="stats-column">
-              <h2 className="column-title">📊 Tabla de Goleadores</h2>
-              <div className="scorers-list">
-                {goleadores.map((jugador, index) => (
-                  <div key={jugador.id} className="scorer-row">
-                    <span className="scorer-rank">{index + 1}</span>
-                    <div className="scorer-info">
-                      <h3>{jugador.nombre}</h3>
-                      <p>{jugador.equipo}</p>
+        <div className="flex flex-col gap-12">
+          <div className="stats-lists grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <article className="glass-panel flex flex-col p-6">
+              <div className="mb-6 flex items-center gap-3 border-b border-white/5 pb-4">
+                <Target className="h-6 w-6 text-primary" />
+                <h2 className="text-2xl font-bold text-white">Tabla de goleadores</h2>
+              </div>
+              <div className="flex flex-col gap-3">
+                {goleadores.slice(0, 10).map((jugador, index) => (
+                  <div key={jugador.id} className={`stat-item flex items-center justify-between rounded-lg border p-3 ${index === 0 ? 'border-primary/30 bg-primary/10' : 'border-white/5 bg-white/5 transition-colors hover:bg-white/10'}`}>
+                    <div className="flex items-center gap-4">
+                      <span className={`w-6 text-center font-mono text-lg font-bold ${index === 0 ? 'text-primary' : index < 3 ? 'text-white' : 'text-text-muted'}`}>
+                        {index + 1}
+                      </span>
+                      <div>
+                        <h3 className={`font-bold ${index === 0 ? 'text-primary' : 'text-white'}`}>{jugador.nombre}</h3>
+                        <p className="font-mono text-xs uppercase text-text-muted">{jugador.equipo}</p>
+                      </div>
                     </div>
-                    <span className="scorer-value">{jugador.goles}</span>
+                    <div className={`font-display text-2xl font-bold ${index === 0 ? 'text-primary' : 'text-white'}`}>
+                      {jugador.goles}
+                    </div>
                   </div>
                 ))}
               </div>
             </article>
 
-            <article className="stats-column">
-              <h2 className="column-title">📈 Jugadores con Estadísticas</h2>
-              <div className="scorers-list">
-                {asistentes.map((jugador, index) => (
-                  <div key={jugador.id} className="scorer-row">
-                    <span className="scorer-rank">{index + 1}</span>
-                    <div className="scorer-info">
-                      <h3>{jugador.nombre}</h3>
-                      <p>{jugador.equipo}</p>
+            <article className="glass-panel flex flex-col p-6">
+              <div className="mb-6 flex items-center gap-3 border-b border-white/5 pb-4">
+                <Activity className="h-6 w-6 text-secondary" />
+                <h2 className="text-2xl font-bold text-white">Top asistidores</h2>
+              </div>
+              <div className="flex flex-col gap-3">
+                {asistentes.slice(0, 10).map((jugador, index) => (
+                  <div key={jugador.id} className="stat-item flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3 transition-colors hover:bg-white/10">
+                    <div className="flex items-center gap-4">
+                      <span className="w-6 text-center font-mono text-lg font-bold text-text-muted">{index + 1}</span>
+                      <div>
+                        <h3 className="font-bold text-white">{jugador.nombre}</h3>
+                        <p className="font-mono text-xs uppercase text-text-muted">{jugador.equipo}</p>
+                      </div>
                     </div>
-                    <span className="scorer-value">{jugador.goles} gol{jugador.goles !== 1 ? 'es' : ''}</span>
+                    <div className="font-display text-2xl font-bold text-secondary">
+                      {jugador.asistencias}
+                    </div>
                   </div>
                 ))}
               </div>
             </article>
           </div>
 
-          <div className="stats-by-team">
-            <h2>📍 Estadísticas por Equipos</h2>
-            <div className="team-stats-grid">
-              <div className="team-stat-card">
-                <p className="team-stat-label">MEJOR ATAQUE</p>
-                <h3>{mejorAtaque ? mejorAtaque[0] : '—'}</h3>
-                <p className="team-stat-value">{mejorAtaque ? `${mejorAtaque[1]} goles` : '—'}</p>
-              </div>
-              <div className="team-stat-card">
-                <p className="team-stat-label">TOTAL GOLES</p>
-                <h3>Jornada 16</h3>
-                <p className="team-stat-value">{totalGoles} goles</p>
-              </div>
-              <div className="team-stat-card">
-                <p className="team-stat-label">PROMEDIO</p>
-                <h3>Por jugador</h3>
-                <p className="team-stat-value">{promedioGoles} goles</p>
-              </div>
-              <div className="team-stat-card">
-                <p className="team-stat-label">JUGADORES</p>
-                <h3>Con estadísticas</h3>
-                <p className="team-stat-value">{goleadores.length} registrados</p>
-              </div>
-            </div>
+          <div className="team-stats-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ['Mejor ataque', mejorAtaque ? mejorAtaque[0] : 'Sin datos', mejorAtaque ? mejorAtaque[1] : '-', 'Goles', 'text-primary'],
+              ['Total goles', 'Liga 1', totalGoles, 'Anotaciones', 'text-secondary'],
+              ['Promedio', 'Por jugador', promedioGoles, 'Goles', 'text-purple-400'],
+              ['Registrados', 'Con estadisticas', goleadores.length, 'Jugadores', 'text-sky-300'],
+            ].map(([label, title, value, caption, color]) => (
+              <article key={label} className="team-stat-card glass-panel flex flex-col items-center p-6 text-center transition-transform duration-300 hover:-translate-y-1">
+                <ShieldCheck className={`mb-5 h-6 w-6 ${color}`} />
+                <p className="mb-4 font-mono text-xs uppercase text-text-muted">{label}</p>
+                <h3 className="mb-2 text-xl font-bold text-white">{title}</h3>
+                <p className={`mt-auto font-display text-3xl font-bold ${color}`}>{value}</p>
+                <span className="text-xs uppercase text-text-muted">{caption}</span>
+              </article>
+            ))}
           </div>
-
-          <div className="stats-summary">
-            <div className="summary-card summary-red">
-              <p className="summary-label">Goles totales</p>
-              <div className="summary-value">{totalGoles}</div>
-            </div>
-            <div className="summary-card summary-blue">
-              <p className="summary-label">Promedio por jugador</p>
-              <div className="summary-value">{promedioGoles}</div>
-            </div>
-            <div className="summary-card summary-green">
-              <p className="summary-label">Jugadores registrados</p>
-              <div className="summary-value">{goleadores.length}</div>
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </section>
   )

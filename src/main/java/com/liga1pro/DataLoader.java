@@ -176,11 +176,18 @@ public class DataLoader implements CommandLineRunner {
                                         .email("admin@liga1pro.com")
                                         .password(passwordEncoder.encode("admin123"))
                                         .rol(Rol.ADMIN)
+                                        .activo(true)
                                         .build();
                                 Usuario saved = usuarioRepository.save(newAdmin);
                                 System.out.println("✅ Usuario admin creado: admin@liga1pro.com / admin123");
                                 return saved;
                         });
+                if (admin.getRol() != Rol.ADMIN || Boolean.FALSE.equals(admin.getActivo())) {
+                        admin.setRol(Rol.ADMIN);
+                        admin.setActivo(true);
+                        admin.setFechaEliminacion(null);
+                        usuarioRepository.save(admin);
+                }
 
                 if (grupoChatRepository.count() == 0) {
                         List<GrupoChat> grupos = Arrays.asList(

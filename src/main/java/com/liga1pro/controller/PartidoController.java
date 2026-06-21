@@ -2,6 +2,7 @@ package com.liga1pro.controller;
 
 import com.liga1pro.model.EstadoPartido;
 import com.liga1pro.model.Partido;
+import com.liga1pro.service.ApiFootballService;
 import com.liga1pro.service.PartidoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,16 +18,17 @@ import java.util.List;
 public class PartidoController {
 
     private final PartidoService partidoService;
+    private final ApiFootballService apiFootballService;
 
     @GetMapping
     public ResponseEntity<List<Partido>> listarTodos() {
-        return ResponseEntity.ok(partidoService.listarTodos());
+        return ResponseEntity.ok(apiFootballService.listarPartidos());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Partido> buscarPorId(@PathVariable Long id) {
         try {
-            Partido partido = partidoService.buscarPorId(id);
+            Partido partido = apiFootballService.buscarPartidoPorId(id);
             return ResponseEntity.ok(partido);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -35,12 +37,12 @@ public class PartidoController {
 
     @GetMapping("/jornada/{jornada}")
     public ResponseEntity<List<Partido>> listarPorJornada(@PathVariable Integer jornada) {
-        return ResponseEntity.ok(partidoService.listarPorJornada(jornada));
+        return ResponseEntity.ok(apiFootballService.listarPartidosPorJornada(jornada));
     }
 
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<Partido>> listarPorEstado(@PathVariable EstadoPartido estado) {
-        return ResponseEntity.ok(partidoService.listarPorEstado(estado));
+        return ResponseEntity.ok(apiFootballService.listarPartidosPorEstado(estado));
     }
 
     @PostMapping

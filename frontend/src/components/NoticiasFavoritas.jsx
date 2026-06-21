@@ -1,119 +1,140 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { favoritoService } from '../services/apiService'
-import '../styles/NoticiasFavoritas.css'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowRight, Clock, Newspaper } from 'lucide-react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { noticiasService } from '../services/apiService'
+import { ProtectedLink } from './ProtectedLink'
 
-const noticias = [
-  {
-    id: 1,
-    categoria: 'resultados',
-    equipo: 'Universitario',
-    titulo: 'Universitario se mantiene en la cima tras vencer a Sport Boys',
-    tiempo: 'Hace 2 horas',
-    imagen: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=250&fit=crop',
-  },
-  {
-    id: 2,
-    categoria: 'fichajes',
-    equipo: 'Alianza Lima',
-    titulo: 'Alianza Lima prepara refuerzos para el Clausura',
-    tiempo: 'Hace 5 horas',
-    imagen: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=400&h=250&fit=crop',
-  },
-  {
-    id: 3,
-    categoria: 'previa',
-    equipo: 'FBC Melgar',
-    titulo: 'Melgar busca mantener su invicto en casa ante Sporting Cristal',
-    tiempo: 'Hace 8 horas',
-    imagen: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=400&h=250&fit=crop',
-  },
-  {
-    id: 4,
-    categoria: 'estadisticas',
-    equipo: 'Universitario',
-    titulo: 'La tabla de goleadores se aprieta en la Liga 1',
-    tiempo: 'Hace 12 horas',
-    imagen: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?w=400&h=250&fit=crop',
-  },
-  {
-    id: 5,
-    categoria: 'noticias',
-    equipo: 'Sport Boys',
-    titulo: 'Sport Boys ficha a joven promesa del fútbol peruano',
-    tiempo: 'Hace 15 horas',
-    imagen: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&h=250&fit=crop',
-  },
-  {
-    id: 6,
-    categoria: 'resultados',
-    equipo: 'Sporting Cristal',
-    titulo: 'Cristal cae en sorpresivo resultado',
-    tiempo: 'Hace 18 horas',
-    imagen: 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=400&h=250&fit=crop',
-  },
-  {
-    id: 7,
-    categoria: 'fichajes',
-    equipo: 'Universitario',
-    titulo: 'Universitario evalúa incorporar un nuevo central para el Clausura',
-    tiempo: 'Hace 20 horas',
-    imagen: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=400&h=250&fit=crop',
-  },
-  {
-    id: 8,
-    categoria: 'previa',
-    equipo: 'Cienciano',
-    titulo: 'Cienciano se prepara para un duelo clave en el Cusco',
-    tiempo: 'Hace 22 horas',
-    imagen: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400&h=250&fit=crop',
-  },
-]
+gsap.registerPlugin(ScrollTrigger)
 
-export function NoticiasFavoritas() {
-  const { user } = useAuth()
-  const [equipoFavorito, setEquipoFavorito] = useState(null)
+const formatDate = (value) => {
+  if (!value) return 'Fecha no disponible'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('es-PE', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+export function NoticiasFavoritas({ equipoFavorito = null }) {
+  const [noticias, setNoticias] = useState([])
+  const containerRef = useRef(null)
 
   useEffect(() => {
-    const loadFavorito = async () => {
-      if (user?.id) {
-        try {
-          const res = await favoritoService.get(user.id)
-          if (res.data?.nombre) {
-            setEquipoFavorito(res.data.nombre)
-          }
-        } catch (error) {
-          console.error('Error cargando favorito:', error)
-        }
+    const loadNoticias = async () => {
+      try {
+        const response = await noticiasService.get()
+        setNoticias(response.data?.noticias || [])
+      } catch (error) {
+        console.error('Error cargando noticias favoritas:', error)
+        setNoticias([])
       }
     }
-    loadFavorito()
-  }, [user])
 
-  const noticiasDestacadas = equipoFavorito
-    ? noticias.filter(n => n.equipo === equipoFavorito).slice(0, 2)
-    : noticias.slice(0, 2)
+    loadNoticias()
+  }, [])
 
-  if (noticiasDestacadas.length === 0) return null
+  const noticiasDestacadas = useMemo(() => {
+    const source = equipoFavorito
+      ? noticias.filter((noticia) => noticia.equipo === equipoFavorito.nombre)
+      : noticias
+
+    return source.slice(0, 4)
+  }, [equipoFavorito, noticias])
+
+  useEffect(() => {
+    if (noticiasDestacadas.length === 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '.news-card',
+        { y: 28, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.08,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+        },
+      )
+    }, containerRef)
+
+    return () => ctx.revert()
+  }, [noticiasDestacadas])
+
+  if (noticiasDestacadas.length === 0) {
+    return null
+  }
 
   return (
-    <section className="noticias-favoritas">
-      <div className="noticias-favoritas-header">
-        <h2>
-          {equipoFavorito ? `📰 Noticias de ${equipoFavorito}` : '📰 Últimas Noticias'}
-        </h2>
-        <Link to="/noticias" className="ver-todos">Ver todas →</Link>
+    <section ref={containerRef}>
+      <div className="section-heading">
+        <div>
+          <div className="eyebrow">
+            <Newspaper className="h-4 w-4" />
+            <span>Actualidad</span>
+          </div>
+          <h2>{equipoFavorito ? `Noticias de ${equipoFavorito.nombre}` : 'Ultimas noticias'}</h2>
+          <p>
+            {equipoFavorito
+              ? `Titulares recientes relacionados a ${equipoFavorito.nombre}.`
+              : 'Titulares recientes de la Liga 1 y sus equipos actuales.'}
+          </p>
+        </div>
+        <ProtectedLink to="/noticias" className="btn-secondary px-5 py-3">
+          Ver todas
+          <ArrowRight className="h-4 w-4" />
+        </ProtectedLink>
       </div>
-      <div className="noticias-favoritas-grid">
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {noticiasDestacadas.map((noticia) => (
-          <Link key={noticia.id} to="/noticias" className="noticia-favorita-card">
-            <img src={noticia.imagen} alt={noticia.titulo} className="noticia-favorita-imagen" />
-            <div className="noticia-favorita-body">
-              <span className="noticia-favorita-tiempo">⏱️ {noticia.tiempo}</span>
-              <h3>{noticia.titulo}</h3>
+          <a
+            key={noticia.id}
+            href={noticia.url}
+            target="_blank"
+            rel="noreferrer"
+            className="news-card glass-panel flex h-full flex-col overflow-hidden p-0 transition-transform duration-300 hover:-translate-y-1 hover:border-primary/40"
+          >
+            <div className="relative h-44 overflow-hidden">
+              {noticia.imagen ? (
+                <img src={noticia.imagen} alt={noticia.titulo} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-surface-light text-primary">
+                  <Newspaper className="h-12 w-12" />
+                </div>
+              )}
             </div>
-          </Link>
+
+            <div className="flex flex-1 flex-col p-5">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
+                  {noticia.liga}
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-text-muted">
+                  {noticia.equipo}
+                </span>
+              </div>
+
+              <h3 className="mb-3 text-lg font-bold leading-snug text-white">{noticia.titulo}</h3>
+              <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-text-muted">
+                {noticia.descripcion || 'Sin resumen disponible en la fuente.'}
+              </p>
+
+              <div className="mt-auto flex items-center gap-2 font-mono text-xs uppercase tracking-[0.16em] text-text-muted">
+                <Clock className="h-3 w-3 text-primary" />
+                <span>{formatDate(noticia.fechaPublicacion)}</span>
+              </div>
+            </div>
+          </a>
         ))}
       </div>
     </section>
