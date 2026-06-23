@@ -8,6 +8,8 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: supabase
+      - key: JAVA_TOOL_OPTIONS
+        value: -Djava.net.preferIPv4Stack=true
       - key: DB_URL
         sync: false
       - key: DB_USERNAME
