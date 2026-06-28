@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Liga 1 Pro</string>
+    <string name="title_activity_main">Liga 1 Pro</string>
+    <string name="package_name">com.liga1pro.app</string>
+    <string name="custom_url_scheme">com.liga1pro.app</string>
+</resources>
