@@ -1,24 +1,45 @@
-import { UltimosResultados } from '../components/UltimosResultados'
+import { useEffect, useState } from 'react'
 import { ProximosPartidos } from '../components/ProximosPartidos'
+import { UltimosResultados } from '../components/UltimosResultados'
 import { NoticiasFavoritas } from '../components/NoticiasFavoritas'
-import { ResumenTabla } from '../components/ResumenTabla'
+import { useAuth } from '../context/AuthContext'
+import { favoritoService } from '../services/apiService'
 
 export function Principal() {
-  return (
-    <div className="principal-shell">
-      <section className="principal-grid">
-        <div className="principal-stack">
-          <UltimosResultados />
-          <ResumenTabla />
-        </div>
-        <div className="principal-stack">
-          <ProximosPartidos />
-        </div>
-      </section>
+  const { user } = useAuth()
+  const [equipoFavorito, setEquipoFavorito] = useState(null)
 
-      <section className="principal-wide">
-        <NoticiasFavoritas />
-      </section>
-    </div>
+  useEffect(() => {
+    const loadFavorito = async () => {
+      if (!user?.id) {
+        setEquipoFavorito(null)
+        return
+      }
+
+      try {
+        const response = await favoritoService.get(user.id)
+        setEquipoFavorito(response.data?.id ? response.data : null)
+      } catch (error) {
+        console.error('Error cargando favorito en Principal:', error)
+        setEquipoFavorito(null)
+      }
+    }
+
+    loadFavorito()
+  }, [user?.id])
+
+  return (
+    <section className="principal-dashboard-page py-8">
+      <div className="principal-top-grid">
+        <div className="principal-results-panel glass-panel-active">
+          <UltimosResultados equipoFavorito={equipoFavorito} />
+        </div>
+      </div>
+
+      <div className="principal-dashboard-stack">
+        <ProximosPartidos equipoFavorito={equipoFavorito} />
+        <NoticiasFavoritas equipoFavorito={equipoFavorito} />
+      </div>
+    </section>
   )
 }
