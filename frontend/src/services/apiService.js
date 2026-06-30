@@ -96,6 +96,12 @@ export const authService = {
   getMe: () => apiClient.get('/auth/me'),
 }
 
+export const favoritoService = {
+  get: (usuarioId) => apiClient.get(`/favoritos/${usuarioId}`),
+  marcar: (usuarioId, equipoId) => apiClient.post('/favoritos', { usuarioId, equipoId }),
+  quitar: (usuarioId) => apiClient.delete(`/favoritos/${usuarioId}`),
+}
+
 export const adminService = {
   buscarUsuarios: (q = '') => apiClient.get('/admin/usuarios', { params: { q } }),
   metricas: () => apiClient.get('/admin/metricas'),

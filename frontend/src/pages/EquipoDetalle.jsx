@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { equipoService, jugadorService } from '../services/apiService'
-import { Shield, MapPin, Users, Building, Info, ChevronRight } from 'lucide-react'
+import { equipoService, jugadorService, favoritoService } from '../services/apiService'
+import { useAuth } from '../context/AuthContext'
+import { Shield, Heart, MapPin, Users, Building, Info, ChevronRight } from 'lucide-react'
 import gsap from 'gsap'
 
 export function EquipoDetalle() {
   const { id } = useParams()
+  const { user } = useAuth()
   const [equipo, setEquipo] = useState(null)
   const [jugadores, setJugadores] = useState([])
   const [loading, setLoading] = useState(true)
+  const [esFavorito, setEsFavorito] = useState(false)
+  const [favLoading, setFavLoading] = useState(false)
   const containerRef = useRef(null)
 
   useEffect(() => {
@@ -21,6 +25,14 @@ export function EquipoDetalle() {
         setEquipo(equipoRes.data)
         setJugadores(jugadoresRes.data || [])
 
+        if (user?.id) {
+          const favRes = await favoritoService.get(user.id)
+          if (favRes.data && favRes.data.id === Number(id)) {
+            setEsFavorito(true)
+          } else {
+            setEsFavorito(false)
+          }
+        }
       } catch (error) {
         console.error('Error cargando equipo:', error)
       } finally {
@@ -28,7 +40,7 @@ export function EquipoDetalle() {
       }
     }
     loadEquipo()
-  }, [id])
+  }, [id, user])
 
   useEffect(() => {
     if (!loading && equipo && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -49,6 +61,24 @@ export function EquipoDetalle() {
       return () => ctx.revert()
     }
   }, [loading, equipo])
+
+  const handleToggleFavorito = async () => {
+    if (!user?.id) return
+    setFavLoading(true)
+    try {
+      if (esFavorito) {
+        await favoritoService.quitar(user.id)
+        setEsFavorito(false)
+      } else {
+        await favoritoService.marcar(user.id, Number(id))
+        setEsFavorito(true)
+      }
+    } catch (error) {
+      console.error('Error actualizando favorito:', error)
+    } finally {
+      setFavLoading(false)
+    }
+  }
 
   if (loading) {
     return <div className="py-20 text-center text-primary animate-pulse font-mono text-lg">Cargando equipo...</div>
@@ -108,6 +138,21 @@ export function EquipoDetalle() {
               </div>
             </div>
           </div>
+
+          {user && (
+            <button
+              onClick={handleToggleFavorito}
+              disabled={favLoading}
+              className={`shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl font-bold font-mono transition-all transform hover:scale-105 ${
+                esFavorito 
+                  ? 'bg-red-500/20 text-red-500 border border-red-500/50 shadow-[var(--shadow-sm)]' 
+                  : 'bg-surface-light text-white border border-border hover:border-red-500/50 hover:text-red-500'
+              }`}
+            >
+              <Heart className={`w-5 h-5 ${esFavorito ? 'fill-red-500' : ''}`} />
+              {esFavorito ? 'TU EQUIPO' : 'HACER FAVORITO'}
+            </button>
+          )}
         </div>
       </div>
 
