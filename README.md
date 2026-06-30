@@ -1,4 +1,4 @@
-# Liga1 Pro - Aplicación de Fútbol
+## Liga1 Pro - Aplicación de Fútbol
 
 Aplicación full-stack para seguir los partidos de la Liga 1 Peruana en tiempo real.
 
